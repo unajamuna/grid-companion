@@ -9,6 +9,8 @@ export type Weather = {
   rainChance: number // 0–100
   sunny: boolean
   summary: string // "Clear", "Cloudy", "Rain"…
+  nowSummary: string // conditions right now, for the weather widget
+  isDay: boolean
 }
 
 // WMO weather codes, collapsed to the few words the tips care about.
@@ -27,7 +29,7 @@ export async function loadWeather(where: { place: string; lat: number; lon: numb
   const url =
     `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
     '&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,weather_code' +
-    '&current=temperature_2m,weather_code&temperature_unit=fahrenheit' +
+    '&current=temperature_2m,weather_code,is_day&temperature_unit=fahrenheit' +
     '&timezone=America%2FLos_Angeles&forecast_days=1'
   const res = await fetch(url)
   if (!res.ok) throw new Error(`Weather: HTTP ${res.status}`)
@@ -41,5 +43,7 @@ export async function loadWeather(where: { place: string; lat: number; lon: numb
     rainChance: j.daily.precipitation_probability_max[0] ?? 0,
     sunny,
     summary,
+    nowSummary: describe(j.current.weather_code).summary,
+    isDay: j.current.is_day === 1,
   }
 }

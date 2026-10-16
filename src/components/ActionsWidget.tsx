@@ -14,11 +14,7 @@ export function ActionsWidget({ context }: { context: Context }) {
     <section className="widget overflow-hidden p-4 sm:p-5">
       <div className="flex items-baseline justify-between gap-3">
         <h2 className="text-lg font-semibold tracking-tight sm:text-xl">What you can do</h2>
-        {wx && (
-          <p className="text-right text-[11px] text-white/55 sm:text-xs">
-            {wx.place} {wx.nowF}°F · {wx.summary}, high {wx.highF}°
-          </p>
-        )}
+        {wx && <p className="text-right text-[11px] text-white/55 sm:text-xs">For {wx.place} today</p>}
       </div>
 
       <div className="mt-3 space-y-4">

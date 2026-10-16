@@ -10,9 +10,9 @@ Built as a climate-tech portfolio project. The design takes cues from the iOS Sc
 - **Actions widget:** Home / Tech / Save suggestions that change with grid conditions. Tap one to see why.
 - **Phases:** *Clean window*, *Cleaner later*, *Mixed supply* or *Data unavailable*, judged against the next 24 hours on this grid rather than an absolute standard.
 
-## Regions
+## Location and weather
 
-Pick a California region from the header. All live regions are on the CAISO grid, which reports one set of numbers for its whole footprint, so the region changes the weather (from [Open-Meteo](https://open-meteo.com/)) and the tips, not the grid chart. The City of Los Angeles (LADWP) and Sacramento (SMUD) run separate grids and are listed as coming soon.
+Viewers enter a California ZIP code (looked up with [Zippopotam.us](https://www.zippopotam.us/)). A small widget shows local weather from [Open-Meteo](https://open-meteo.com/), and the tips follow that weather. The grid widgets show CAISO, which reports one set of numbers for its whole footprint. ZIPs that are probably served by LADWP (City of Los Angeles) or SMUD (Sacramento) get a note that their grid isn't supported yet. ZIPs outside California are declined.
 
 ## Data
 
