@@ -9,10 +9,10 @@ import { UNWIND } from './tips/unwind'
 export type { Action, Context, Effort, Goal, Project, Row } from './conditions'
 
 export const ROWS: { id: Row; label: string }[] = [
-  { id: 'home', label: 'Home' },
-  { id: 'tech', label: 'Tech' },
-  { id: 'save', label: 'Save' },
-  { id: 'unwind', label: 'Unwind' },
+  { id: 'home', label: 'Around the house' },
+  { id: 'tech', label: 'Computers, screens & AI' },
+  { id: 'save', label: 'Everyday habits' },
+  { id: 'unwind', label: 'Unplug & unwind' },
 ]
 export const PER_ROW = 4
 // Leave room for habits even when timing matters, so rows don't all say "Tmrw 8 AM".

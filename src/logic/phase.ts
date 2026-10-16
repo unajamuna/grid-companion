@@ -14,6 +14,9 @@ export const fmtTime = (d: Date) =>
 export const fmtDayTime = (d: Date) =>
   `${d.toLocaleDateString([], { month: 'short', day: 'numeric' })}, ${fmtTime(d)}`
 
+// Daylight hours, when solar is the likely reason the grid gets cleaner.
+const solarHour = (d: Date) => d.getHours() >= 7 && d.getHours() < 16
+
 const sameDay = (d: Date, now: Date) => d.toDateString() === now.toDateString()
 
 // "around 9 AM", or "tomorrow around 9 AM" when it falls on the next day.
@@ -56,10 +59,8 @@ export function classify(data: GridData, now: Date): Phase {
     const end = forecast.find((p) => new Date(p.at) > now && p.carbonIntensity > threshold)
     return {
       id: 'clean',
-      label: 'Clean window',
-      summary: end
-        ? `Your grid is in one of its cleanest stretches of the day, likely until about ${fmtTime(new Date(end.at))}.`
-        : 'Your grid is in one of its cleanest stretches of the day.',
+      label: 'Clean now',
+      summary: `Right now is one of the cleanest times of the day to use electricity${solarHour(now) ? ', with plenty of solar on the grid' : ''}${end ? `. It should stay that way until about ${fmtTime(new Date(end.at))}` : ''}.`,
       why: `${current} g/kWh is in the lowest ${CLEAN_BAND * 100}% of today's range (${min}–${max}). ${relative}`,
       windowEnd: end ? new Date(end.at) : undefined,
     }
@@ -81,14 +82,14 @@ export function classify(data: GridData, now: Date): Phase {
     return {
       id: 'cleaner-later',
       label: 'Cleaner later',
-      summary: `A cleaner window is expected around ${fmtTime(at)}, about ${drop}% lower than now.`,
+      summary: `Electricity should get cleaner ${fmtWhen(at, now)}${solarHour(at) ? ', as solar comes online' : ''}, with about ${drop}% less carbon per unit than now. Flexible chores can wait until then.`,
       why: `Forecast drops to ${best.carbonIntensity} g/kWh from ${current} now. ${relative}`,
       windowStart: at,
     }
   }
 
   // Top of today's range with nothing meaningfully cleaner in the next 12 hours:
-  // say so plainly, and point at the next clean window if one is within 24 hours.
+  // say so plainly, and point at the next clean stretch if one is within 24 hours.
   if (current >= min + (max - min) * HIGH_BAND) {
     const next = forecast.find((p) => new Date(p.at) > now && p.carbonIntensity <= threshold)
     const at = next ? new Date(next.at) : undefined
@@ -96,8 +97,8 @@ export function classify(data: GridData, now: Date): Phase {
       id: 'higher-carbon',
       label: 'Higher-carbon',
       summary: at
-        ? `Gas is doing much of the work right now. The next clean stretch starts ${fmtWhen(at, now)}.`
-        : 'Gas is doing much of the work right now, and nothing much cleaner is expected soon.',
+        ? `Gas plants are doing much of the work right now, so this is one of the most carbon-heavy times of the day. It gets cleaner ${fmtWhen(at, now)}${solarHour(at) ? ', once solar is back' : ''}.`
+        : 'Gas plants are doing much of the work right now, and nothing much cleaner is expected soon.',
       why: `${current} g/kWh is in the highest ${Math.round((1 - HIGH_BAND) * 100)}% of today's range (${min}–${max}). ${relative}`,
       windowStart: at,
     }
@@ -106,7 +107,7 @@ export function classify(data: GridData, now: Date): Phase {
   return {
     id: 'mixed',
     label: 'Mixed supply',
-    summary: "Conditions don't strongly favor now or later. Do what's convenient.",
+    summary: "Right now is about average for the day. No hour coming up is much cleaner, so use power whenever it suits you.",
     why: `${current} g/kWh, and nothing in the next 12 hours is meaningfully cleaner. ${relative}`,
   }
 }

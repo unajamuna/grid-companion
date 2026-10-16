@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { ActionsWidget } from './components/ActionsWidget'
+import { DayCard } from './components/DayCard'
 import { Landscape } from './components/Landscape'
 import { LocationBar } from './components/LocationBar'
-import { Rhythm } from './components/Rhythm'
 import { UsageWidget } from './components/UsageWidget'
 import { WeatherWidget } from './components/WeatherWidget'
 import { loadCaiso } from './data/caiso'
@@ -33,7 +33,6 @@ type Live = { status: 'loading' } | { status: 'live'; data: GridData } | { statu
 export default function App() {
   const [realNow, setRealNow] = useState(() => new Date())
   const [offsetH, setOffsetH] = useState(0)
-  const [showWhy, setShowWhy] = useState(false)
   const [place, setPlace] = useState<Place>(loadPlace)
   const [weather, setWeather] = useState<Weather | null>(null)
   const [live, setLive] = useState<Live>({ status: forceDemo ? 'failed' : 'loading', error: 'demo mode' })
@@ -152,31 +151,19 @@ export default function App() {
           <ActionsWidget context={{ phase, busy, now, weather }} />
           <WeatherWidget place={place} weather={weather} />
 
-          <section className="widget p-4 sm:p-5">
-            <h2 className="text-lg font-semibold tracking-tight sm:text-xl">Right now</h2>
-            <p className="mt-2 text-[15px] leading-relaxed text-white/90">{phase.summary}</p>
-            <p className="mt-2 text-xs text-white/55">
-              {delayed
-                ? `About ${snapshot.carbonIntensity ?? '—'} g/kWh at ${fmtDayTime(observedAt)} (our estimate)`
-                : `${snapshot.carbonIntensity ?? '—'} g/kWh carbon intensity`}
-              {busy && ' · demand is near today’s peak'}
-            </p>
-            <button onClick={() => setShowWhy((v) => !v)} aria-expanded={showWhy}
-              className="mt-3 text-xs text-white/55 underline decoration-dotted underline-offset-4 hover:text-white">
-              {showWhy ? 'Hide why' : `Why “${phase.label}”?`}
-            </button>
-            {showWhy && (
-              <p className="mt-2 text-xs leading-relaxed text-white/70">
-                {phase.why} {data.forecastNote}
-              </p>
-            )}
-          </section>
-
-          {delayed && data.pattern ? (
-            <Rhythm forecast={data.pattern.points} current={null} pastLabel={`${data.pattern.day}’s pattern`} />
-          ) : (
-            <Rhythm forecast={data.forecast} current={snapshot.carbonIntensity} />
-          )}
+          <DayCard
+            phase={phase}
+            points={delayed && data.pattern ? data.pattern.points : data.forecast}
+            current={delayed ? null : snapshot.carbonIntensity}
+            pastDay={delayed ? (data.pattern?.day ?? 'A past day') : undefined}
+            stat={
+              (delayed
+                ? `About ${snapshot.carbonIntensity ?? '—'} g CO₂ per kWh at ${fmtDayTime(observedAt)} (our estimate)`
+                : `Right now: ${snapshot.carbonIntensity ?? '—'} g CO₂ per kWh`) +
+              (busy ? ' · demand is near today’s peak' : '')
+            }
+            how={`${phase.why} ${data.forecastNote ?? ''}`.trim()}
+          />
         </main>
 
         {isDemo && (
