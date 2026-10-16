@@ -1,8 +1,6 @@
 // Today's weather from Open-Meteo (free, no key, allows browser requests).
 // Used only to pick which tips fit the day; never shown as a forecast product.
 
-export const WEATHER_PLACE = { name: 'Oakland', lat: 37.8, lon: -122.27 }
-
 export type Weather = {
   place: string
   nowF: number
@@ -24,8 +22,8 @@ function describe(code: number): { summary: string; sunny: boolean } {
   return { summary: 'Rain', sunny: false }
 }
 
-export async function loadWeather(): Promise<Weather> {
-  const { name, lat, lon } = WEATHER_PLACE
+export async function loadWeather(where: { place: string; lat: number; lon: number }): Promise<Weather> {
+  const { place: name, lat, lon } = where
   const url =
     `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
     '&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,weather_code' +

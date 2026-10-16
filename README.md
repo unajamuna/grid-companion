@@ -10,6 +10,10 @@ Built as a climate-tech portfolio project. The design takes cues from the iOS Sc
 - **Actions widget:** Home / Tech / Save suggestions that change with grid conditions. Tap one to see why.
 - **Phases:** *Clean window*, *Cleaner later*, *Mixed supply* or *Data unavailable*, judged against the next 24 hours on this grid rather than an absolute standard.
 
+## Regions
+
+Pick a California region from the header. All live regions are on the CAISO grid, which reports one set of numbers for its whole footprint, so the region changes the weather (from [Open-Meteo](https://open-meteo.com/)) and the tips, not the grid chart. The City of Los Angeles (LADWP) and Sacramento (SMUD) run separate grids and are listed as coming soon.
+
 ## Data
 
 Live data comes from CAISO's public [Today's Outlook](https://www.caiso.com/todays-outlook) files (5-minute updates, no API key). Carbon intensity is CAISO's reported CO₂ divided by total supply. CAISO publishes no carbon forecast, so the app estimates one from CAISO's net-demand forecast, and for hours after midnight assumes a day like today. Import emissions are CAISO estimates.

@@ -126,7 +126,7 @@ export async function loadCaiso(now = new Date()): Promise<GridData> {
     forecastNote:
       "Later today is estimated from CAISO's forecast of how much demand wind and solar won't cover. After midnight it assumes a day like today.",
     snapshot: {
-      region: 'Bay Area · CAISO grid',
+      region: 'CAISO grid',
       observedAt: at(latest.minutes).toISOString(),
       carbonIntensity: latest.ci,
       renewableShare: renewableMW / latest.supply,

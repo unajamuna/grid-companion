@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { ActionsWidget } from './components/ActionsWidget'
 import { Landscape } from './components/Landscape'
 import { Learn } from './components/Learn'
+import { RegionPicker } from './components/RegionPicker'
 import { Rhythm } from './components/Rhythm'
 import { UsageWidget } from './components/UsageWidget'
 import { loadCaiso } from './data/caiso'
@@ -9,6 +10,8 @@ import type { Weather } from './data/weather'
 import { loadWeather } from './data/weather'
 import { sampleGridData } from './data/sample'
 import { classify, fmtTime } from './logic/phase'
+import type { Region } from './regions'
+import { loadRegion, saveRegion } from './regions'
 import type { GridData } from './types'
 
 const BUSY_SHARE = 0.9 // demand within 10% of today's peak counts as "busy"
@@ -21,6 +24,7 @@ export default function App() {
   const [realNow, setRealNow] = useState(() => new Date())
   const [offsetH, setOffsetH] = useState(0)
   const [showWhy, setShowWhy] = useState(false)
+  const [region, setRegion] = useState<Region>(loadRegion)
   const [weather, setWeather] = useState<Weather | null>(null)
   const [live, setLive] = useState<Live>({ status: forceDemo ? 'failed' : 'loading', error: 'demo mode' })
 
@@ -50,11 +54,20 @@ export default function App() {
 
   // Weather only picks which tips fit the day; tips still work without it.
   useEffect(() => {
-    const load = () => loadWeather().then(setWeather).catch((e) => console.warn('Weather unavailable:', e))
+    let cancelled = false
+    setWeather(null)
+    saveRegion(region)
+    const load = () =>
+      loadWeather(region.weather)
+        .then((w) => !cancelled && setWeather(w))
+        .catch((e) => console.warn('Weather unavailable:', e))
     load()
     const t = setInterval(load, 60 * 60_000)
-    return () => clearInterval(t)
-  }, [])
+    return () => {
+      cancelled = true
+      clearInterval(t)
+    }
+  }, [region])
 
   const isDemo = live.status !== 'live'
   const now = useMemo(
@@ -84,7 +97,7 @@ export default function App() {
         <header className="flex items-end justify-between gap-4 px-1 text-charcoal">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">Grid Companion</h1>
-            <p className="text-sm text-charcoal/70">{snapshot.region}</p>
+            <RegionPicker region={region} onChange={setRegion} />
           </div>
           <p className="text-right text-xs text-charcoal/70">
             {isDemo ? 'Sample' : <><span className="mr-1 inline-block h-1.5 w-1.5 rounded-full bg-[#3f9b4a] align-middle" />Live</>}
@@ -147,7 +160,8 @@ export default function App() {
           <p>
             Source: {snapshot.source}
             {snapshot.isEstimated && ' (import emissions are CAISO estimates)'}. Phases compare the next 24 hours
-            on your grid, not an absolute standard.
+            on your grid, not an absolute standard. CAISO reports its whole grid as one, so the chart is the same
+            across these regions; weather and tips are local to {region.weather.place}.
           </p>
           <p>
             {isDemo ? (

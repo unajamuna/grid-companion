@@ -89,7 +89,7 @@ export function sampleGridData(now: Date): GridData {
     forecast,
     today,
     snapshot: {
-      region: 'Bay Area · CAISO',
+      region: 'CAISO grid',
       observedAt: new Date(now.getTime() - 12 * 60_000).toISOString(),
       carbonIntensity: intensityOf(nowMix),
       renewableShare: share(['solar', 'wind', 'hydro']),
