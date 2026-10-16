@@ -46,7 +46,8 @@ export default async function handler(req: Request): Promise<Response> {
   // and keeps every viewer from spending the key's hourly request budget.
   return json(body.response?.data ?? [], 200, {
     'Cache-Control': 'public, max-age=600',
-    'Netlify-CDN-Cache-Control': 'public, s-maxage=900, stale-while-revalidate=3600',
+    // `durable` keeps one copy for every edge node, so a slow EIA fetch is shared site-wide.
+    'Netlify-CDN-Cache-Control': 'public, durable, s-maxage=900, stale-while-revalidate=3600',
   })
 }
 
