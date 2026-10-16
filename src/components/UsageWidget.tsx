@@ -1,5 +1,11 @@
-import { SOURCE_ORDER, SOURCES } from '../sources'
-import type { GridSnapshot, HourUsage, Phase, PhaseId, Source } from '../types'
+import { fmtTime } from '../logic/phase'
+import { GROUP_ORDER, GROUPS, groupMix } from '../sources'
+import type { GridSnapshot, HourUsage, Phase, PhaseId } from '../types'
+
+// CAISO's all-time peak demand: 52,061 MW on Sept 6, 2022 (heat wave).
+// Drawn as a reference line so bars read against the grid's real high-water mark.
+const RECORD_MW = 52_061
+const SCALE_MW = 60_000
 
 const PHASE_DOT: Record<PhaseId, { color: string; glyph: string }> = {
   clean: { color: '#6cc070', glyph: '●' },
@@ -10,17 +16,27 @@ const PHASE_DOT: Record<PhaseId, { color: string; glyph: string }> = {
 
 const hourLabel = (h: number) => (h === 0 ? '12 AM' : h === 12 ? '12 PM' : h < 12 ? `${h} AM` : `${h - 12} PM`)
 
+// Where "now" sits in today's range, in plain words.
+function demandLevel(now: number, today: HourUsage[]) {
+  const values = today.map((h) => h.demandMW)
+  const [min, max] = [Math.min(...values, now), Math.max(...values, now)]
+  const pos = max > min ? (now - min) / (max - min) : 0.5
+  const level = pos >= 0.85 ? 'Near today’s peak' : pos <= 0.25 ? 'Low for today' : 'Moderate for today'
+  const record = now < RECORD_MW * 0.75 ? 'well under the 52 GW record' : 'close to the 52 GW record'
+  return `${level} · ${record}`
+}
+
+type Props = { today: HourUsage[]; snapshot: GridSnapshot; phase: Phase; isDemo: boolean }
+
 // Screen Time–style widget: how much power the grid is using today, and what kind.
-export function UsageWidget({ today, snapshot, phase }: { today: HourUsage[]; snapshot: GridSnapshot; phase: Phase }) {
+export function UsageWidget({ today, snapshot, phase, isDemo }: Props) {
   const gw = snapshot.demandMW == null ? '—' : (snapshot.demandMW / 1000).toFixed(1)
   const dot = PHASE_DOT[phase.id]
-  const top = snapshot.mix
-    ? (Object.entries(snapshot.mix) as [Source, number][]).sort((a, b) => b[1] - a[1]).slice(0, 4)
-    : []
-  const total = top.length ? Object.values(snapshot.mix!).reduce((a, b) => a + (b ?? 0), 0) : 1
+  const nowGroups = snapshot.mix ? groupMix(snapshot.mix) : null
+  const ranked = nowGroups ? [...GROUP_ORDER].sort((a, b) => nowGroups[b] - nowGroups[a]) : []
   const peak = today.reduce((b, h) => (h.demandMW > b.demandMW ? h : b), today[0])
-  // Round the axis up to the next 10 GW so summer peaks still fit.
-  const scaleMW = Math.max(40_000, Math.ceil(peak.demandMW / 10_000) * 10_000)
+  const scaleMW = Math.max(SCALE_MW, peak.demandMW * 1.1)
+  const recordPct = (RECORD_MW / scaleMW) * 100
 
   return (
     <section className="grid grid-cols-[1fr_auto] overflow-hidden rounded-[28px] bg-[#1c1c1e] text-white shadow-2xl shadow-black/30 ring-1 ring-white/10">
@@ -38,61 +54,71 @@ export function UsageWidget({ today, snapshot, phase }: { today: HourUsage[]; sn
             <span className="ml-1 text-lg font-medium text-white/60 sm:text-2xl">GW</span>
           </p>
         </div>
-        <p className="mt-2 truncate text-xs text-white/55">
+        <p className="mt-2 text-xs text-white/55">
           Grid demand now · <span className="text-white/85">{phase.label}</span>
         </p>
+        {snapshot.demandMW != null && (
+          <p className="mt-0.5 text-xs text-white/85">{demandLevel(snapshot.demandMW, today)}</p>
+        )}
 
-        <div className="mt-3 flex gap-1.5">
-          <div className="relative h-24 flex-1 sm:h-28">
-            {[0, 0.5, 1].map((f) => (
-              <div key={f} className="absolute inset-x-0 border-t border-white/15" style={{ bottom: `${f * 100}%` }} />
-            ))}
-            {[0, 6, 12, 18].map((h) => (
-              <div key={h} className="absolute inset-y-0 border-l border-dashed border-white/15"
-                style={{ left: `${(h / 24) * 100}%` }} />
-            ))}
-            <div className="absolute inset-0 flex items-end gap-[2px] px-[1px]" role="img"
-              aria-label={`Hourly grid demand today, peaking around ${hourLabel(new Date(peak.at).getHours())} at ${(peak.demandMW / 1000).toFixed(1)} gigawatts. Bars are split by energy source; later hours are a forecast.`}>
-              {today.map((h) => (
+        <div className="relative mt-4 h-28 sm:h-32">
+          <div className="absolute inset-x-0 bottom-0 border-t border-white/15" />
+          {[0, 6, 12, 18].map((h) => (
+            <div key={h} className="absolute inset-y-0 border-l border-dashed border-white/10"
+              style={{ left: `${(h / 24) * 100}%` }} />
+          ))}
+          <div className="absolute inset-x-0 border-t border-dashed border-white/40" style={{ bottom: `${recordPct}%` }}>
+            <span className="absolute right-0 -translate-y-full pb-0.5 text-[10px] text-white/60 sm:text-[11px]">
+              Record 52 GW
+            </span>
+          </div>
+          <div className="absolute inset-0 flex items-end gap-[2px] px-[1px]" role="img"
+            aria-label={`Hourly grid demand today, peaking around ${hourLabel(new Date(peak.at).getHours())} at ${(peak.demandMW / 1000).toFixed(1)} gigawatts, against a record of 52 gigawatts. Bars are split by energy source; grey bars are forecast.`}>
+            {today.map((h) => {
+              const g = h.mix ? groupMix(h.mix) : null
+              return (
                 <div key={h.at} className="flex flex-1 flex-col-reverse overflow-hidden rounded-t-[3px]"
                   style={{ height: `${(h.demandMW / scaleMW) * 100}%` }}>
-                  {h.mix ? (
-                    SOURCE_ORDER.map((k) => (
-                      <div key={k} style={{ height: `${h.mix![k] * 100}%`, background: SOURCES[k].color }} />
+                  {g ? (
+                    GROUP_ORDER.map((k) => (
+                      <div key={k} style={{ height: `${g[k] * 100}%`, background: GROUPS[k].color }} />
                     ))
                   ) : (
                     <div className="h-full bg-white/20" title="Forecast demand" />
                   )}
                 </div>
-              ))}
-            </div>
-          </div>
-          <div className="flex h-24 flex-col justify-between text-right text-[10px] leading-none text-white/50 sm:h-28 sm:text-xs">
-            <span className="-translate-y-1/2">{scaleMW / 1000} GW</span>
-            <span>{scaleMW / 2000}</span>
-            <span className="translate-y-1/2">0</span>
+              )
+            })}
           </div>
         </div>
-        <div className="mt-1.5 flex pr-8 text-[10px] text-white/50 sm:text-xs">
+        <div className="mt-1.5 flex text-[10px] text-white/50 sm:text-xs">
           {[0, 6, 12, 18].map((h) => (
             <span key={h} className="flex-1">{hourLabel(h)}</span>
           ))}
         </div>
+
+        <p className="mt-3 flex flex-wrap items-center gap-x-1.5 text-[10px] text-white/45 sm:text-[11px]">
+          <span>{isDemo ? 'Sample data' : 'Live from CAISO'} · {fmtTime(new Date(snapshot.observedAt))}</span>
+          <span aria-hidden>·</span>
+          <span className="inline-flex items-center gap-1">
+            <span className="inline-block h-2 w-2 rounded-sm bg-white/25" /> forecast
+          </span>
+        </p>
       </div>
 
-      <ul className="flex flex-col justify-around gap-2 bg-[#2c2c2e] px-3 py-4 sm:px-5">
-        {top.map(([k, v]) => {
-          const S = SOURCES[k]
+      <ul className="flex flex-col justify-around gap-1.5 bg-[#2c2c2e] px-3 py-4 sm:px-4" aria-label="Where power comes from right now">
+        {ranked.map((k) => {
+          const G = GROUPS[k]
           return (
-            <li key={k} className="flex items-center gap-2.5" title={S.label}>
-              <span className="grid h-8 w-8 place-items-center rounded-[9px] sm:h-9 sm:w-9" style={{ background: S.color }}>
-                <S.icon size={18} strokeWidth={2.2} color="#1c1c1e" aria-hidden />
+            <li key={k} className="flex items-center gap-2.5">
+              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-[8px] sm:h-8 sm:w-8" style={{ background: G.color }}>
+                <G.icon size={16} strokeWidth={2.2} color="#1c1c1e" aria-hidden />
               </span>
-              <span className="flex w-12 flex-col leading-none">
-                <span className="text-lg font-medium tabular-nums text-white/70 sm:text-xl">
-                  {Math.round((v / total) * 100)}%
+              <span className="flex flex-col leading-none">
+                <span className="text-base font-medium tabular-nums text-white/80 sm:text-lg">
+                  {Math.round(nowGroups![k] * 100)}%
                 </span>
-                <span className="mt-0.5 text-[10px] text-white/45">{S.label}</span>
+                <span className="mt-0.5 whitespace-nowrap text-[10px] text-white/50">{G.label}</span>
               </span>
             </li>
           )
