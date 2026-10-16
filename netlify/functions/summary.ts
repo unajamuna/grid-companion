@@ -79,7 +79,12 @@ export default async function handler(req: Request): Promise<Response> {
       place: { zip: place.zip, name: place.place },
       grid: { id: grid, label: GRID_INFO[grid].label, live: !delayed && !data.isDemo, delayed },
       observedAt: snapshot.observedAt,
-      phase: { id: phase.id, label: phase.label, summary: phase.summary },
+      phase: {
+        id: phase.id, label: phase.label, summary: phase.summary,
+        // When cleaner power starts (cleaner-later, higher-carbon) or ends (clean). ISO strings.
+        cleanStart: phase.windowStart?.toISOString() ?? null,
+        cleanEnd: phase.windowEnd?.toISOString() ?? null,
+      },
       mood: mood(ctx),
       demandGW: snapshot.demandMW == null ? null : Math.round(snapshot.demandMW / 100) / 10,
       busy,

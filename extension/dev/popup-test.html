@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Popup test</title><link rel="stylesheet" href="../popup.css"></head>
+<body><script src="fake-chrome.js"></script><script>
+  // Load the real popup markup, then its scripts, in order.
+  fetch('../popup.html').then((r) => r.text()).then((html) => {
+    const doc = new DOMParser().parseFromString(html, 'text/html')
+    doc.querySelectorAll('script').forEach((s) => s.remove())
+    document.body.insertAdjacentHTML('beforeend', doc.body.innerHTML.replaceAll('src="icons/', 'src="../icons/'))
+    const load = (src) => new Promise((ok) => { const s = document.createElement('script'); s.src = src; s.onload = ok; document.body.appendChild(s) })
+    load('../nudge-rules.js').then(() => load('../popup.js'))
+  })
+</script></body></html>

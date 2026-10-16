@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Grid Companion</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <img src="icons/icon32.png" alt="" width="20" height="20">
+    <h1>Grid Companion</h1>
+    <span id="fresh" class="muted"></span>
+  </header>
+
+  <section class="card" id="status" aria-live="polite">
+    <p class="muted">Checking the grid…</p>
+  </section>
+
+  <section class="card">
+    <label class="row">
+      <span>Pause before AI chats when the grid is dirty or busy</span>
+      <input type="checkbox" id="enabled">
+    </label>
+    <label class="row">
+      <span>Also when much cleaner power is coming soon</span>
+      <input type="checkbox" id="alsoLater">
+    </label>
+    <div class="row">
+      <span id="pauseText">Nudges are on</span>
+      <button id="pause" class="small">Pause for today</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <form id="zipForm" class="row">
+      <label for="zip">Your ZIP</label>
+      <input id="zip" inputmode="numeric" maxlength="5" autocomplete="postal-code">
+      <button class="small" type="submit">Save</button>
+    </form>
+    <p id="zipError" class="error" role="alert"></p>
+  </section>
+
+  <section class="card">
+    <h2>Since you installed it</h2>
+    <div class="stats">
+      <div><strong id="deferred">0</strong><span>saved for cleaner hours</span></div>
+      <div><strong id="smaller">0</strong><span>switched to a smaller model</span></div>
+      <div><strong id="continued">0</strong><span>went ahead anyway</span></div>
+    </div>
+  </section>
+
+  <p class="foot"><a id="open" href="#">Open Grid Companion ↗</a></p>
+  <script src="nudge-rules.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

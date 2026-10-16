@@ -1,0 +1,33 @@
+:root { color-scheme: dark; }
+body {
+  width: 320px; margin: 0; padding: 14px;
+  background: #121214; color: #fff;
+  font: 13px/1.4 -apple-system, 'SF Pro Text', Inter, system-ui, sans-serif;
+}
+header { display: flex; align-items: center; gap: 8px; }
+h1 { margin: 0; font-size: 15px; font-weight: 650; }
+h2 { margin: 0 0 8px; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: rgba(255,255,255,.45); }
+#fresh { margin-left: auto; font-size: 11px; }
+.muted { color: rgba(255,255,255,.55); }
+.card { margin-top: 10px; padding: 12px; border-radius: 16px; background: #1c1c1e; box-shadow: inset 0 0 0 1px rgba(255,255,255,.07); }
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px 3px 8px; border-radius: 999px; background: rgba(255,255,255,.1); font-weight: 600; font-size: 12px; }
+.dot { width: 8px; height: 8px; border-radius: 4px; background: #aeaeb2; }
+.summary { margin: 8px 0 0; color: rgba(255,255,255,.82); }
+.verdict { margin: 8px 0 0; font-size: 12px; }
+.row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.row + .row { margin-top: 10px; }
+.row span, .row label { flex: 1; color: rgba(255,255,255,.82); }
+input[type=checkbox] { width: 16px; height: 16px; accent-color: #7fd67f; }
+#zip { width: 70px; padding: 6px 8px; border: 0; border-radius: 10px; background: #2c2c2e; color: #fff; font: inherit; }
+#zip:focus { outline: 2px solid #7fd67f; }
+button.small { padding: 6px 10px; border: 0; border-radius: 10px; background: #2c2c2e; color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+button.small:hover { background: #3a3a3c; }
+.error { margin: 6px 0 0; min-height: 0; font-size: 12px; color: #ff8a80; }
+.error:empty { display: none; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.stats div { display: flex; flex-direction: column; gap: 2px; }
+.stats strong { font-size: 20px; }
+.stats span { font-size: 11px; color: rgba(255,255,255,.5); }
+.foot { margin: 12px 0 0; text-align: center; }
+a { color: #7fd67f; text-decoration: none; }
+a:hover { text-decoration: underline; }
