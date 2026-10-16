@@ -59,6 +59,7 @@ export function timed(c: Context): { when: string; phrase: string } {
       ? { when: fmtTag(phase.windowStart, now), phrase: `${fmtWhen(phase.windowStart, now)} if it can wait. That's when the grid is next clean` }
       : { when: 'If needed', phrase: "only if it can't wait. Nothing much cleaner is expected soon" }
   }
+  if (phase.id === 'unavailable') return { when: 'Anytime', phrase: "whenever suits you. We can't see your grid's timing right now" }
   if (busy) return { when: 'After peak', phrase: 'after the evening peak, once demand eases' }
   return { when: 'Anytime', phrase: "whenever suits you. Timing doesn't matter much right now" }
 }
