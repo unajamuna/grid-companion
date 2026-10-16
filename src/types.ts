@@ -36,7 +36,7 @@ export type GridData = {
   forecastNote?: string
 }
 
-export type PhaseId = 'clean' | 'cleaner-later' | 'mixed' | 'unavailable'
+export type PhaseId = 'clean' | 'cleaner-later' | 'mixed' | 'higher-carbon' | 'unavailable'
 
 export type Phase = {
   id: PhaseId

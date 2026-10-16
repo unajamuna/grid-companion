@@ -4,7 +4,7 @@ import {
   Shirt, Sparkles, UtensilsCrossed, WashingMachine,
 } from 'lucide-react'
 import type { Phase } from '../types'
-import { fmtTime } from './phase'
+import { fmtTag, fmtTime, fmtWhen } from './phase'
 
 export type Row = 'home' | 'tech' | 'save'
 export const ROWS: { id: Row; label: string; tone: string }[] = [
@@ -13,7 +13,7 @@ export const ROWS: { id: Row; label: string; tone: string }[] = [
   { id: 'save', label: 'Save', tone: 'text-[#b8a98f]' },
 ]
 
-export type Context = { phase: Phase; busy: boolean }
+export type Context = { phase: Phase; busy: boolean; now: Date }
 
 export type Action = {
   id: string
@@ -29,7 +29,7 @@ export type Action = {
 // Hand-written on purpose: no model is making up energy advice, and comfort,
 // health and safety always win over grid timing.
 function timed(c: Context): { when: string; phrase: string } {
-  const { phase, busy } = c
+  const { phase, busy, now } = c
   if (phase.id === 'clean') {
     return {
       when: phase.windowEnd ? `Till ${fmtTime(phase.windowEnd)}` : 'Now',
@@ -37,8 +37,12 @@ function timed(c: Context): { when: string; phrase: string } {
     }
   }
   if (phase.id === 'cleaner-later' && phase.windowStart) {
-    const t = fmtTime(phase.windowStart)
-    return { when: `At ${t}`, phrase: `around ${t}, when the grid is cleaner` }
+    return { when: fmtTag(phase.windowStart, now), phrase: `${fmtWhen(phase.windowStart, now)}, when the grid is cleaner` }
+  }
+  if (phase.id === 'higher-carbon') {
+    return phase.windowStart
+      ? { when: fmtTag(phase.windowStart, now), phrase: `${fmtWhen(phase.windowStart, now)} if it can wait. That's when the grid is next clean` }
+      : { when: 'If needed', phrase: "only if it can't wait. Nothing much cleaner is expected soon" }
   }
   if (busy) return { when: 'After peak', phrase: 'after the evening peak, once demand eases' }
   return { when: 'Anytime', phrase: "whenever suits you. Timing doesn't matter much right now" }
@@ -55,7 +59,7 @@ export const ACTIONS: Action[] = [
     detail: (c) => `Run the dishwasher ${timed(c).phrase}. Delay-start makes this easy.${busyNote(c)}` },
   { id: 'laundry', row: 'home', label: 'Laundry', icon: WashingMachine,
     when: (c) => timed(c).when,
-    detail: (c) => `If a load can wait, start it ${timed(c).phrase}.${busyNote(c)}` },
+    detail: (c) => `Start your next load ${timed(c).phrase}.${busyNote(c)}` },
   { id: 'ev', row: 'home', label: 'EV charge', icon: CarFront,
     when: (c) => timed(c).when,
     detail: (c) => `Charge the EV or e-bike ${timed(c).phrase}. Most cars and chargers let you set a start time.${busyNote(c)}` },

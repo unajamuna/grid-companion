@@ -90,7 +90,7 @@ export default function App() {
 
         <main className="mt-5 space-y-5">
           <UsageWidget today={data.today} snapshot={snapshot} phase={phase} isDemo={isDemo} />
-          <ActionsWidget context={{ phase, busy }} />
+          <ActionsWidget context={{ phase, busy, now }} />
 
           <section className="rounded-3xl bg-white/60 p-6 backdrop-blur-xl">
             <p className="text-xs font-medium uppercase tracking-widest text-muted">Right now</p>

@@ -1,18 +1,13 @@
+import { useState } from 'react'
 import { fmtTime } from '../logic/phase'
 import { GROUP_ORDER, GROUPS, groupMix } from '../sources'
-import type { GridSnapshot, HourUsage, Phase, PhaseId } from '../types'
+import type { GridSnapshot, HourUsage, Phase } from '../types'
+import { PHASE_STYLE } from './PhaseIcon'
 
 // CAISO's all-time peak demand: 52,061 MW on Sept 6, 2022 (heat wave).
 // Drawn as a reference line so bars read against the grid's real high-water mark.
 const RECORD_MW = 52_061
 const SCALE_MW = 60_000
-
-const PHASE_DOT: Record<PhaseId, { color: string; glyph: string }> = {
-  clean: { color: '#6cc070', glyph: '●' },
-  'cleaner-later': { color: '#4f8ff7', glyph: '→' },
-  mixed: { color: '#f08a4b', glyph: '◐' },
-  unavailable: { color: '#8e8e93', glyph: '?' },
-}
 
 const hourLabel = (h: number) => (h === 0 ? '12 AM' : h === 12 ? '12 PM' : h < 12 ? `${h} AM` : `${h - 12} PM`)
 
@@ -31,7 +26,8 @@ type Props = { today: HourUsage[]; snapshot: GridSnapshot; phase: Phase; isDemo:
 // Screen Time–style widget: how much power the grid is using today, and what kind.
 export function UsageWidget({ today, snapshot, phase, isDemo }: Props) {
   const gw = snapshot.demandMW == null ? '—' : (snapshot.demandMW / 1000).toFixed(1)
-  const dot = PHASE_DOT[phase.id]
+  const [showWhy, setShowWhy] = useState(false)
+  const P = PHASE_STYLE[phase.id]
   const nowGroups = snapshot.mix ? groupMix(snapshot.mix) : null
   const ranked = nowGroups ? [...GROUP_ORDER].sort((a, b) => nowGroups[b] - nowGroups[a]) : []
   const peak = today.reduce((b, h) => (h.demandMW > b.demandMW ? h : b), today[0])
@@ -41,22 +37,20 @@ export function UsageWidget({ today, snapshot, phase, isDemo }: Props) {
   return (
     <section className="grid grid-cols-[1fr_auto] overflow-hidden rounded-[28px] bg-[#1c1c1e] text-white shadow-2xl shadow-black/30 ring-1 ring-white/10">
       <div className="min-w-0 p-4 sm:p-5">
-        <div className="flex items-center gap-3">
-          <span
-            aria-hidden
-            className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-sm text-[#1c1c1e] sm:h-11 sm:w-11"
-            style={{ background: dot.color }}
-          >
-            {dot.glyph}
-          </span>
-          <p className="text-[34px] font-semibold leading-none tracking-tight sm:text-5xl">
-            {gw}
-            <span className="ml-1 text-lg font-medium text-white/60 sm:text-2xl">GW</span>
-          </p>
-        </div>
-        <p className="mt-2 text-xs text-white/55">
-          Grid demand now · <span className="text-white/85">{phase.label}</span>
+        <button
+          onClick={() => setShowWhy((v) => !v)}
+          aria-expanded={showWhy}
+          className="inline-flex items-center gap-1.5 rounded-full bg-white/12 py-1 pr-3 pl-2 text-xs font-medium text-white/90 transition hover:bg-white/20"
+        >
+          <P.icon size={15} strokeWidth={2.2} color={P.color} aria-hidden />
+          {phase.label}
+        </button>
+        {showWhy && <p className="mt-2 text-xs leading-relaxed text-white/70">{phase.summary} {phase.why}</p>}
+        <p className="mt-3 text-[34px] font-semibold leading-none tracking-tight sm:text-5xl">
+          {gw}
+          <span className="ml-1 text-lg font-medium text-white/60 sm:text-2xl">GW</span>
         </p>
+        <p className="mt-2 text-xs text-white/55">Grid demand now</p>
         {snapshot.demandMW != null && (
           <p className="mt-0.5 text-xs text-white/85">{demandLevel(snapshot.demandMW, today)}</p>
         )}
