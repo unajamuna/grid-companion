@@ -5,16 +5,26 @@ import { Rhythm } from './components/Rhythm'
 import { UsageWidget } from './components/UsageWidget'
 import { WeatherWidget } from './components/WeatherWidget'
 import { loadCaiso } from './data/caiso'
+import { loadEia } from './data/eia'
 import type { Weather } from './data/weather'
 import { loadWeather } from './data/weather'
 import { sampleGridData } from './data/sample'
-import { classify, fmtTime } from './logic/phase'
+import { classify, fmtDayTime, fmtTime } from './logic/phase'
 import type { Place } from './location'
 import { loadPlace, savePlace } from './location'
 import type { GridData } from './types'
 
 const BUSY_SHARE = 0.9 // demand within 10% of today's peak counts as "busy"
 const REFRESH_MS = 5 * 60_000 // CAISO publishes every 5 minutes
+const DELAYED_REFRESH_MS = 30 * 60_000 // EIA updates hourly, about a day behind
+
+// CAISO covers most of California live. LADWP and SMUD (on the BANC grid) run their
+// own grids, which we only get from EIA, about a day late.
+const GRIDS = {
+  CAISO: { name: 'CAISO', load: () => loadCaiso(), refreshMs: REFRESH_MS },
+  LADWP: { name: 'LADWP', load: () => loadEia('LDWP'), refreshMs: DELAYED_REFRESH_MS },
+  SMUD: { name: 'SMUD', load: () => loadEia('BANC'), refreshMs: DELAYED_REFRESH_MS },
+}
 const forceDemo = new URLSearchParams(location.search).has('demo')
 
 type Live = { status: 'loading' } | { status: 'live'; data: GridData } | { status: 'failed'; error: string }
@@ -32,11 +42,14 @@ export default function App() {
     return () => clearInterval(t)
   }, [])
 
+  const grid = GRIDS[place.otherGrid ?? 'CAISO']
   useEffect(() => {
     if (forceDemo) return
     let cancelled = false
+    // A different grid's last reading isn't a fallback for this one.
+    setLive((prev) => (prev.status === 'loading' ? prev : { status: 'loading' }))
     const load = () =>
-      loadCaiso()
+      grid.load()
         .then((data) => !cancelled && setLive({ status: 'live', data }))
         .catch((e: Error) => {
           console.warn('Live grid data unavailable:', e)
@@ -44,12 +57,12 @@ export default function App() {
           if (!cancelled) setLive((prev) => (prev.status === 'live' ? prev : { status: 'failed', error: e.message }))
         })
     load()
-    const t = setInterval(load, REFRESH_MS)
+    const t = setInterval(load, grid.refreshMs)
     return () => {
       cancelled = true
       clearInterval(t)
     }
-  }, [])
+  }, [grid])
 
   // Weather only picks which tips fit the day; tips still work without it.
   useEffect(() => {
@@ -86,8 +99,11 @@ export default function App() {
 
   const phase = classify(data, now)
   const { snapshot } = data
+  const delayed = !!data.delayed
   const peakMW = Math.max(...data.today.map((h) => h.demandMW))
-  const busy = snapshot.demandMW != null && snapshot.demandMW >= peakMW * BUSY_SHARE
+  // A day-old reading says nothing about whether demand is near its peak now.
+  const busy = !delayed && snapshot.demandMW != null && snapshot.demandMW >= peakMW * BUSY_SHARE
+  const observedAt = new Date(snapshot.observedAt)
 
   return (
     <div className="relative min-h-screen">
@@ -96,12 +112,18 @@ export default function App() {
         <header className="flex items-end justify-between gap-4 px-1 text-charcoal">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">Grid Companion</h1>
-            <p className="text-sm text-charcoal/70">California · CAISO grid</p>
+            <p className="text-sm text-charcoal/70">
+              {delayed ? `${place.place} · ${snapshot.region}` : 'California · CAISO grid'}
+            </p>
           </div>
           <p className="text-right text-xs text-charcoal/70">
-            {isDemo ? 'Sample' : <><span className="mr-1 inline-block h-1.5 w-1.5 rounded-full bg-[#3f9b4a] align-middle" />Live</>}
-            {' · '}
-            {fmtTime(new Date(snapshot.observedAt))}
+            {isDemo ? (
+              `Sample · ${fmtTime(observedAt)}`
+            ) : delayed ? (
+              <><span className="mr-1 inline-block h-1.5 w-1.5 rounded-full bg-[#c98a1b] align-middle" />Delayed · as of {fmtDayTime(observedAt)}</>
+            ) : (
+              <><span className="mr-1 inline-block h-1.5 w-1.5 rounded-full bg-[#3f9b4a] align-middle" />Live · {fmtTime(observedAt)}</>
+            )}
           </p>
         </header>
 
@@ -110,12 +132,21 @@ export default function App() {
             <strong className="font-semibold text-white">Sample data.</strong>{' '}
             {forceDemo
               ? 'Demo mode: plausible numbers for a typical day, not live readings.'
-              : "We couldn't reach CAISO just now, so these are plausible numbers for a typical day, not live readings."}
+              : `We couldn't reach ${grid.name}'s data just now, so these are plausible numbers for a typical CAISO day, not real readings.`}
+          </p>
+        )}
+
+        {delayed && (
+          <p className="widget mt-4 rounded-2xl px-4 py-2.5 text-xs text-white/75">
+            <strong className="font-semibold text-white">Delayed data.</strong> {grid.name}'s numbers reach the public
+            through the U.S. EIA about a day late. You're seeing {data.pattern?.day === 'Yesterday' ? 'yesterday' : (data.pattern?.day ?? 'a past day')}, not
+            right now, so we won't suggest timing from it.
           </p>
         )}
 
         <main className="mt-5 space-y-5">
-          <UsageWidget today={data.today} snapshot={snapshot} phase={phase} isDemo={isDemo} />
+          <UsageWidget today={data.today} snapshot={snapshot} phase={phase} isDemo={isDemo}
+            delayed={delayed} recordMW={data.recordMW} />
           <ActionsWidget context={{ phase, busy, now, weather }} />
           <WeatherWidget place={place} weather={weather} onPlace={setPlace} />
 
@@ -123,7 +154,9 @@ export default function App() {
             <h2 className="text-lg font-semibold tracking-tight sm:text-xl">Right now</h2>
             <p className="mt-2 text-[15px] leading-relaxed text-white/90">{phase.summary}</p>
             <p className="mt-2 text-xs text-white/55">
-              {snapshot.carbonIntensity ?? '—'} g/kWh carbon intensity
+              {delayed
+                ? `About ${snapshot.carbonIntensity ?? '—'} g/kWh at ${fmtDayTime(observedAt)} (our estimate)`
+                : `${snapshot.carbonIntensity ?? '—'} g/kWh carbon intensity`}
               {busy && ' · demand is near today’s peak'}
             </p>
             <button onClick={() => setShowWhy((v) => !v)} aria-expanded={showWhy}
@@ -137,7 +170,11 @@ export default function App() {
             )}
           </section>
 
-          <Rhythm forecast={data.forecast} current={snapshot.carbonIntensity} />
+          {delayed && data.pattern ? (
+            <Rhythm forecast={data.pattern.points} current={null} pastLabel={`${data.pattern.day}’s pattern`} />
+          ) : (
+            <Rhythm forecast={data.forecast} current={snapshot.carbonIntensity} />
+          )}
         </main>
 
         {isDemo && (
@@ -156,12 +193,20 @@ export default function App() {
         )}
 
         <footer className="mt-8 space-y-1 text-center text-xs text-charcoal/80">
-          <p>
-            Source: {snapshot.source}
-            {snapshot.isEstimated && ' (import emissions are CAISO estimates)'}. Phases compare the next 24 hours
-            on your grid, not an absolute standard. CAISO reports its whole grid as one, so the grid chart is the same
-            across California; weather and tips are local to {place.place}. Weather: Open-Meteo.
-          </p>
+          {delayed ? (
+            <p>
+              Source: {snapshot.source} (EIA-930), which runs about a day behind. Carbon intensity is our estimate
+              from the power-plant mix, and power imported into the area isn't reported. Weather and tips are local
+              to {place.place}. Weather: Open-Meteo.
+            </p>
+          ) : (
+            <p>
+              Source: {snapshot.source}
+              {snapshot.isEstimated && ' (import emissions are CAISO estimates)'}. Phases compare the next 24 hours
+              on your grid, not an absolute standard. CAISO reports its whole grid as one, so the grid chart is the same
+              across most of California; weather and tips are local to {place.place}. Weather: Open-Meteo.
+            </p>
+          )}
           <p>
             {isDemo ? (
               <a className="underline" href="./">Try live data</a>

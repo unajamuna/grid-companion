@@ -17,8 +17,8 @@ function iconFor(w: Weather): { icon: LucideIcon; color: string } {
 }
 
 const OTHER_GRID = {
-  LADWP: 'This ZIP is probably served by LADWP, the City of LA’s own grid, which we don’t support yet. The grid widgets below show CAISO, the grid around it.',
-  SMUD: 'This ZIP is probably served by SMUD, Sacramento’s own grid, which we don’t support yet. The grid widgets below show CAISO, the grid around it.',
+  LADWP: 'This ZIP is probably served by LADWP, the City of LA’s own grid. Its numbers come from the U.S. EIA and run about a day behind, so the grid widgets show a past day, not right now.',
+  SMUD: 'This ZIP is probably served by SMUD, Sacramento’s utility, on the BANC grid. Its numbers come from the U.S. EIA and run about a day behind, so the grid widgets show a past day, not right now.',
 }
 
 // Small widget: local weather for the viewer's ZIP, and where they change it.
@@ -101,7 +101,7 @@ export function WeatherWidget({ place, weather, onPlace }: { place: Place; weath
         <p className="mt-3 text-[11px] leading-relaxed text-[#f2c14e]/90">{OTHER_GRID[place.otherGrid]}</p>
       ) : (
         <p className="mt-3 text-[11px] leading-relaxed text-white/45">
-          Works anywhere in California except the City of Los Angeles (LADWP) and Sacramento (SMUD), which run their own grids.
+          Live for most of California. The City of Los Angeles (LADWP) and Sacramento (SMUD) run their own grids, and their data arrives about a day late.
         </p>
       )}
     </section>

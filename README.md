@@ -12,7 +12,14 @@ Built as a climate-tech portfolio project. The design takes cues from the iOS Sc
 
 ## Location and weather
 
-Viewers enter a California ZIP code (looked up with [Zippopotam.us](https://www.zippopotam.us/)). A small widget shows local weather from [Open-Meteo](https://open-meteo.com/), and the tips follow that weather. The grid widgets show CAISO, which reports one set of numbers for its whole footprint. ZIPs that are probably served by LADWP (City of Los Angeles) or SMUD (Sacramento) get a note that their grid isn't supported yet. ZIPs outside California are declined.
+Viewers enter a California ZIP code (looked up with [Zippopotam.us](https://www.zippopotam.us/)). A small widget shows local weather from [Open-Meteo](https://open-meteo.com/), and the tips follow that weather. ZIPs outside California are declined.
+
+Most ZIPs get live CAISO data, which covers its whole footprint as one grid. ZIPs that are probably served by LADWP (City of Los Angeles) or SMUD (Sacramento, on the BANC balancing authority) get their own grid instead, from the U.S. EIA's [Hourly Electric Grid Monitor](https://www.eia.gov/electricity/gridmonitor/) (EIA-930, respondents `LDWP` and `BANC`). EIA publishes generation by fuel about a day late, so for those grids the app:
+
+- labels everything "Delayed · as of <time>" instead of "Live", with a banner saying so
+- shows the most recent full day EIA has (usually yesterday) as hourly bars and a "Yesterday's pattern" carbon curve
+- gives no real-time timing advice: the phase is always "Data unavailable"
+- estimates carbon intensity from the mix (gas ≈ 450 g/kWh, oil ≈ 650, coal ≈ 1000, unspecified "other" ≈ 300, the rest ≈ 0), and labels it as an estimate. EIA doesn't report imports, so the mix covers power made inside the area.
 
 ## Data
 
@@ -30,3 +37,5 @@ npm run dev
 ```
 
 Deployed on Netlify. `netlify.toml` proxies `/caiso/*` to CAISO, because CAISO's files don't allow cross-origin requests.
+
+LADWP and SMUD data needs a free [EIA API key](https://www.eia.gov/opendata/register.php). `netlify/functions/eia.ts` (served at `/api/eia`) adds the key on the server so it never reaches the browser. Set `EIA_API_KEY` in Netlify's environment variables, and for local dev put `EIA_API_KEY=...` in a `.env` file (gitignored); `vite.config.ts` runs the same function in the dev server.

@@ -34,6 +34,11 @@ export type GridData = {
   today: HourUsage[] // midnight to midnight, local time
   isDemo: boolean
   forecastNote?: string
+  recordMW?: number // the grid's all-time peak demand, drawn as a reference line
+  // Data that arrives about a day late (EIA). The app shows it as a past day and
+  // gives no real-time timing advice from it.
+  delayed?: boolean
+  pattern?: { day: string; points: ForecastPoint[] } // "Yesterday" or a weekday, and its hourly carbon
 }
 
 export type PhaseId = 'clean' | 'cleaner-later' | 'mixed' | 'higher-carbon' | 'unavailable'

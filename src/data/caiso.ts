@@ -5,6 +5,9 @@ import type { ForecastPoint, GridData, HourUsage, Source } from '../types'
 //   fuelsource.csv  MW by source          demand.csv     actual + forecast demand, MW
 //   co2.csv         tons CO₂/hour by source   netdemand.csv  demand minus wind & solar, MW
 
+// CAISO's all-time peak demand: 52,061 MW on Sept 6, 2022 (heat wave).
+export const CAISO_RECORD_MW = 52_061
+
 type Table = { time: string; minutes: number; v: Record<string, number> }[]
 
 function parseCsv(text: string): Table {
@@ -121,6 +124,7 @@ export async function loadCaiso(now = new Date()): Promise<GridData> {
 
   return {
     isDemo: false,
+    recordMW: CAISO_RECORD_MW,
     today,
     forecast: buildForecast(observed, net, hourlyCi, at, now, latest.ci),
     forecastNote:

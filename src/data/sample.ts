@@ -1,3 +1,4 @@
+import { CAISO_RECORD_MW } from './caiso'
 import type { ForecastPoint, GridData, HourUsage, Source } from '../types'
 
 // Demonstration data shaped like a typical autumn day on the CAISO grid:
@@ -86,6 +87,7 @@ export function sampleGridData(now: Date): GridData {
 
   return {
     isDemo: true,
+    recordMW: CAISO_RECORD_MW,
     forecast,
     today,
     snapshot: {

@@ -10,6 +10,10 @@ const STALE_AFTER_MS = 2 * 3600_000
 export const fmtTime = (d: Date) =>
   d.toLocaleTimeString([], { hour: 'numeric', minute: d.getMinutes() ? '2-digit' : undefined })
 
+// "Oct 14, 11 PM": for readings that aren't from today.
+export const fmtDayTime = (d: Date) =>
+  `${d.toLocaleDateString([], { month: 'short', day: 'numeric' })}, ${fmtTime(d)}`
+
 const sameDay = (d: Date, now: Date) => d.toDateString() === now.toDateString()
 
 // "around 9 AM", or "tomorrow around 9 AM" when it falls on the next day.
@@ -22,6 +26,16 @@ export function classify(data: GridData, now: Date): Phase {
   const { snapshot, forecast } = data
   const current = snapshot.carbonIntensity
   const age = now.getTime() - new Date(snapshot.observedAt).getTime()
+
+  // Day-old data can't say whether right now is a good time, so we don't pretend it can.
+  if (data.delayed) {
+    return {
+      id: 'unavailable',
+      label: 'Data unavailable',
+      summary: `We can't see your grid right now. Its numbers reach us about a day late, so we're not making a call on timing.`,
+      why: `The latest reading is from ${fmtDayTime(new Date(snapshot.observedAt))}. The charts show that day as a pattern, not a forecast.`,
+    }
+  }
 
   if (current == null || forecast.length < 6 || age > STALE_AFTER_MS) {
     return {

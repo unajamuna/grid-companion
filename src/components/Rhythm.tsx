@@ -6,8 +6,15 @@ const H = 160
 const PAD = { l: 8, r: 8, t: 16, b: 8 }
 const GREEN = '#7fd67f'
 
+type Props = {
+  forecast: ForecastPoint[]
+  current: number | null
+  pastLabel?: string // set for a past day's estimates (delayed data) instead of a forecast
+}
+
 // Carbon intensity over the next 24h, cleaner stretches shaded green.
-export function Rhythm({ forecast, current }: { forecast: ForecastPoint[]; current: number | null }) {
+// With pastLabel, the same curve for a past day: a pattern, not a forecast.
+export function Rhythm({ forecast, current, pastLabel }: Props) {
   if (forecast.length < 2) return null
   const values = forecast.map((p) => p.carbonIntensity)
   const min = Math.min(...values)
@@ -34,18 +41,24 @@ export function Rhythm({ forecast, current }: { forecast: ForecastPoint[]; curre
   return (
     <section className="widget p-4 sm:p-5">
       <div className="flex items-baseline justify-between gap-4">
-        <h2 className="text-lg font-semibold tracking-tight sm:text-xl">The next 24 hours</h2>
-        <p className="text-[11px] text-white/45 sm:text-xs">g CO₂/kWh</p>
+        <h2 className="text-lg font-semibold tracking-tight sm:text-xl">{pastLabel ?? 'The next 24 hours'}</h2>
+        <p className="text-[11px] text-white/45 sm:text-xs">{pastLabel ? 'est. ' : ''}g CO₂/kWh</p>
       </div>
       <p className="mt-1 text-xs text-white/55">
-        Cleanest around <strong className="font-medium text-white">{fmtTime(new Date(best.at))}</strong> at{' '}
-        {best.carbonIntensity} g/kWh.{' '}
+        {pastLabel ? 'Cleanest was' : 'Cleanest'} around{' '}
+        <strong className="font-medium text-white">{fmtTime(new Date(best.at))}</strong> at {best.carbonIntensity} g/kWh.{' '}
         <span className="inline-flex items-center gap-1">
-          <span className="inline-block h-2 w-2 rounded-sm" style={{ background: GREEN, opacity: 0.5 }} /> cleaner windows
+          <span className="inline-block h-2 w-2 rounded-sm" style={{ background: GREEN, opacity: 0.5 }} /> cleaner{' '}
+          {pastLabel ? 'hours' : 'windows'}
         </span>
       </p>
+      {pastLabel && (
+        <p className="mt-1 text-[11px] text-white/45">
+          Estimated from that day’s power-plant mix. A past day, not a forecast for today.
+        </p>
+      )}
       <svg viewBox={`0 0 ${W} ${H}`} className="mt-4 w-full" role="img"
-        aria-label={`Carbon intensity forecast ranging from ${min} to ${max} grams per kilowatt-hour; lowest around ${fmtTime(new Date(best.at))}.`}>
+        aria-label={`${pastLabel ? 'Estimated carbon intensity on a past day' : 'Carbon intensity forecast'} ranging from ${min} to ${max} grams per kilowatt-hour; lowest around ${fmtTime(new Date(best.at))}.`}>
         {runs.map(([a, b]) => (
           <rect key={a} x={x(a)} y={PAD.t} width={x(b) - x(a)} height={H - PAD.t - PAD.b}
             fill={GREEN} fillOpacity={0.14} />
@@ -68,7 +81,7 @@ export function Rhythm({ forecast, current }: { forecast: ForecastPoint[]; curre
                 left: `${(x(i) / W) * 100}%`,
                 transform: i === 0 ? undefined : i === forecast.length - 1 ? 'translateX(-100%)' : 'translateX(-50%)',
               }}>
-              {i === 0 ? 'Now' : fmtTime(new Date(p.at))}
+              {i === 0 && !pastLabel ? 'Now' : fmtTime(new Date(p.at))}
             </span>
           ) : null,
         )}

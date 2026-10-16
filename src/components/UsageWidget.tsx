@@ -1,38 +1,44 @@
 import { useState } from 'react'
-import { fmtTime } from '../logic/phase'
+import { fmtDayTime, fmtTime } from '../logic/phase'
 import { GROUP_ORDER, GROUPS, groupMix } from '../sources'
 import type { GridSnapshot, HourUsage, Phase } from '../types'
 import { PHASE_STYLE } from './PhaseIcon'
 
-// CAISO's all-time peak demand: 52,061 MW on Sept 6, 2022 (heat wave).
-// Drawn as a reference line so bars read against the grid's real high-water mark.
-const RECORD_MW = 52_061
-const SCALE_MW = 60_000
-
 const hourLabel = (h: number) => (h === 0 ? '12 AM' : h === 12 ? '12 PM' : h < 12 ? `${h} AM` : `${h - 12} PM`)
 
-// Where "now" sits in today's range, in plain words.
-function demandLevel(now: number, today: HourUsage[]) {
+// Where the reading sits in the day's range, in plain words.
+function demandLevel(now: number, today: HourUsage[], recordMW: number | undefined, delayed: boolean) {
   const values = today.map((h) => h.demandMW)
   const [min, max] = [Math.min(...values, now), Math.max(...values, now)]
   const pos = max > min ? (now - min) / (max - min) : 0.5
-  const level = pos >= 0.85 ? 'Near today’s peak' : pos <= 0.25 ? 'Low for today' : 'Moderate for today'
-  const record = now < RECORD_MW * 0.75 ? 'well under the 52 GW record' : 'close to the 52 GW record'
-  return `${level} · ${record}`
+  const day = delayed ? 'that day' : 'today'
+  const level = pos >= 0.85 ? `Near ${day}’s peak` : pos <= 0.25 ? `Low for ${day}` : `Moderate for ${day}`
+  if (!recordMW) return level
+  const gw = Math.round(recordMW / 1000)
+  return `${level} · ${now < recordMW * 0.75 ? 'well under' : 'close to'} the ${gw} GW record`
 }
 
-type Props = { today: HourUsage[]; snapshot: GridSnapshot; phase: Phase; isDemo: boolean }
+type Props = {
+  today: HourUsage[]
+  snapshot: GridSnapshot
+  phase: Phase
+  isDemo: boolean
+  delayed?: boolean
+  recordMW?: number // drawn as a reference line so bars read against the grid's real high-water mark
+}
 
 // Screen Time–style widget: how much power the grid is using today, and what kind.
-export function UsageWidget({ today, snapshot, phase, isDemo }: Props) {
+export function UsageWidget({ today, snapshot, phase, isDemo, delayed = false, recordMW }: Props) {
   const gw = snapshot.demandMW == null ? '—' : (snapshot.demandMW / 1000).toFixed(1)
   const [showWhy, setShowWhy] = useState(false)
   const P = PHASE_STYLE[phase.id]
   const nowGroups = snapshot.mix ? groupMix(snapshot.mix) : null
   const ranked = nowGroups ? [...GROUP_ORDER].sort((a, b) => nowGroups[b] - nowGroups[a]) : []
   const peak = today.reduce((b, h) => (h.demandMW > b.demandMW ? h : b), today[0])
-  const scaleMW = Math.max(SCALE_MW, peak.demandMW * 1.1)
-  const recordPct = (RECORD_MW / scaleMW) * 100
+  const scaleMW = Math.max((recordMW ?? 0) * 1.15, peak.demandMW * 1.1)
+  const recordPct = recordMW ? (recordMW / scaleMW) * 100 : null
+  const observedAt = new Date(snapshot.observedAt)
+  const hasForecast = today.some((h) => h.isForecast)
 
   return (
     <section className="widget grid grid-cols-[1fr_auto] overflow-hidden">
@@ -50,9 +56,9 @@ export function UsageWidget({ today, snapshot, phase, isDemo }: Props) {
           {gw}
           <span className="ml-1 text-lg font-medium text-white/60 sm:text-2xl">GW</span>
         </p>
-        <p className="mt-2 text-xs text-white/55">Grid demand now</p>
+        <p className="mt-2 text-xs text-white/55">{delayed ? `Grid demand at ${fmtDayTime(observedAt)}` : 'Grid demand now'}</p>
         {snapshot.demandMW != null && (
-          <p className="mt-0.5 text-xs text-white/85">{demandLevel(snapshot.demandMW, today)}</p>
+          <p className="mt-0.5 text-xs text-white/85">{demandLevel(snapshot.demandMW, today, recordMW, delayed)}</p>
         )}
 
         <div className="relative mt-4 h-28 sm:h-32">
@@ -61,13 +67,15 @@ export function UsageWidget({ today, snapshot, phase, isDemo }: Props) {
             <div key={h} className="absolute inset-y-0 border-l border-dashed border-white/10"
               style={{ left: `${(h / 24) * 100}%` }} />
           ))}
-          <div className="absolute inset-x-0 border-t border-dashed border-white/40" style={{ bottom: `${recordPct}%` }}>
-            <span className="absolute right-0 -translate-y-full pb-0.5 text-[10px] text-white/60 sm:text-[11px]">
-              Record 52 GW
-            </span>
-          </div>
+          {recordPct != null && (
+            <div className="absolute inset-x-0 border-t border-dashed border-white/40" style={{ bottom: `${recordPct}%` }}>
+              <span className="absolute right-0 -translate-y-full pb-0.5 text-[10px] text-white/60 sm:text-[11px]">
+                Record {Math.round(recordMW! / 1000)} GW
+              </span>
+            </div>
+          )}
           <div className="absolute inset-0 flex items-end gap-[2px] px-[1px]" role="img"
-            aria-label={`Hourly grid demand today, peaking around ${hourLabel(new Date(peak.at).getHours())} at ${(peak.demandMW / 1000).toFixed(1)} gigawatts, against a record of 52 gigawatts. Bars are split by energy source; grey bars are forecast.`}>
+            aria-label={`Hourly grid demand ${delayed ? `on ${observedAt.toLocaleDateString([], { weekday: 'long' })}` : 'today'}, peaking around ${hourLabel(new Date(peak.at).getHours())} at ${(peak.demandMW / 1000).toFixed(1)} gigawatts${recordMW ? `, against a record of ${Math.round(recordMW / 1000)} gigawatts` : ''}. Bars are split by energy source${hasForecast ? '; grey bars are forecast' : ''}.`}>
             {today.map((h) => {
               const g = h.mix ? groupMix(h.mix) : null
               return (
@@ -92,11 +100,19 @@ export function UsageWidget({ today, snapshot, phase, isDemo }: Props) {
         </div>
 
         <p className="mt-3 flex flex-wrap items-center gap-x-1.5 text-[10px] text-white/45 sm:text-[11px]">
-          <span>{isDemo ? 'Sample data' : 'Live from CAISO'} · {fmtTime(new Date(snapshot.observedAt))}</span>
-          <span aria-hidden>·</span>
-          <span className="inline-flex items-center gap-1">
-            <span className="inline-block h-2 w-2 rounded-sm bg-white/25" /> forecast
+          <span>
+            {delayed
+              ? `Delayed · as of ${fmtDayTime(observedAt)}`
+              : `${isDemo ? 'Sample data' : 'Live from CAISO'} · ${fmtTime(observedAt)}`}
           </span>
+          {hasForecast && (
+            <>
+              <span aria-hidden>·</span>
+              <span className="inline-flex items-center gap-1">
+                <span className="inline-block h-2 w-2 rounded-sm bg-white/25" /> forecast
+              </span>
+            </>
+          )}
         </p>
       </div>
 
