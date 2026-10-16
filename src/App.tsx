@@ -4,6 +4,8 @@ import { Learn } from './components/Learn'
 import { Rhythm } from './components/Rhythm'
 import { UsageWidget } from './components/UsageWidget'
 import { loadCaiso } from './data/caiso'
+import type { Weather } from './data/weather'
+import { loadWeather } from './data/weather'
 import { sampleGridData } from './data/sample'
 import { classify, fmtTime } from './logic/phase'
 import type { GridData } from './types'
@@ -18,6 +20,7 @@ export default function App() {
   const [realNow, setRealNow] = useState(() => new Date())
   const [offsetH, setOffsetH] = useState(0)
   const [showWhy, setShowWhy] = useState(false)
+  const [weather, setWeather] = useState<Weather | null>(null)
   const [live, setLive] = useState<Live>({ status: forceDemo ? 'failed' : 'loading', error: 'demo mode' })
 
   useEffect(() => {
@@ -42,6 +45,14 @@ export default function App() {
       cancelled = true
       clearInterval(t)
     }
+  }, [])
+
+  // Weather only picks which tips fit the day; tips still work without it.
+  useEffect(() => {
+    const load = () => loadWeather().then(setWeather).catch((e) => console.warn('Weather unavailable:', e))
+    load()
+    const t = setInterval(load, 60 * 60_000)
+    return () => clearInterval(t)
   }, [])
 
   const isDemo = live.status !== 'live'
@@ -90,7 +101,7 @@ export default function App() {
 
         <main className="mt-5 space-y-5">
           <UsageWidget today={data.today} snapshot={snapshot} phase={phase} isDemo={isDemo} />
-          <ActionsWidget context={{ phase, busy, now }} />
+          <ActionsWidget context={{ phase, busy, now, weather }} />
 
           <section className="rounded-3xl bg-white/60 p-6 backdrop-blur-xl">
             <p className="text-xs font-medium uppercase tracking-widest text-muted">Right now</p>

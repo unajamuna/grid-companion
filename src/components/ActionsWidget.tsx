@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { Context } from '../logic/actions'
-import { ACTIONS, ROWS } from '../logic/actions'
+import { ACTIONS, pickRow, ROWS } from '../logic/actions'
 
 // Lively-style widget: a row label, then four actions with icons.
 // The tag under each icon changes with grid conditions; tap one for the reason.
@@ -11,10 +11,15 @@ export function ActionsWidget({ context }: { context: Context }) {
   return (
     <section className="overflow-hidden rounded-[28px] bg-gradient-to-b from-[#24180c] via-[#120d07] to-black px-2 py-5 text-[#efe4d0] shadow-2xl shadow-black/30 ring-1 ring-white/10 sm:px-5">
       <h2 className="sr-only">What to do with your energy right now</h2>
+      <p className="mb-4 px-2 text-[11px] text-[#a8957a] sm:text-xs">
+        {context.weather
+          ? `Tips for today · ${context.weather.place} ${context.weather.nowF}°F · ${context.weather.summary}, high ${context.weather.highF}°F`
+          : 'Tips for today'}
+      </p>
       <div className="grid grid-cols-[4.4rem_repeat(4,minmax(0,1fr))] items-start gap-y-4 sm:grid-cols-[7rem_repeat(4,minmax(0,1fr))]">
         {ROWS.map((row) => (
           <Row key={row.id} label={row.label} tone={row.tone}>
-            {ACTIONS.filter((a) => a.row === row.id).map((a) => {
+            {pickRow(row.id, context).map((a) => {
               const selected = a.id === openId
               return (
                 <button key={a.id} onClick={() => setOpenId(selected ? null : a.id)} aria-expanded={selected}
