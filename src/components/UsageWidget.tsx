@@ -35,7 +35,7 @@ export function UsageWidget({ today, snapshot, phase, isDemo }: Props) {
   const recordPct = (RECORD_MW / scaleMW) * 100
 
   return (
-    <section className="grid grid-cols-[1fr_auto] overflow-hidden rounded-[28px] bg-[#1c1c1e] text-white shadow-2xl shadow-black/30 ring-1 ring-white/10">
+    <section className="widget grid grid-cols-[1fr_auto] overflow-hidden">
       <div className="min-w-0 p-4 sm:p-5">
         <button
           onClick={() => setShowWhy((v) => !v)}

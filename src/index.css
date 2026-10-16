@@ -19,3 +19,8 @@
 body {
   @apply bg-cream text-charcoal font-sans antialiased;
 }
+
+/* The shared widget look: every box on the page uses it. */
+@utility widget {
+  @apply rounded-[28px] bg-[#1c1c1e] text-white shadow-2xl shadow-black/30 ring-1 ring-white/10;
+}

@@ -21,14 +21,14 @@ const FACTS: { id: string; q: string; a: string; phases: PhaseId[] }[] = [
 export function Learn({ phaseId }: { phaseId: PhaseId }) {
   const fact = FACTS.find((f) => f.phases.includes(phaseId)) ?? FACTS[0]
   return (
-    <section className="rounded-3xl bg-white/45 p-6 backdrop-blur-xl">
-      <p className="text-xs font-medium uppercase tracking-widest text-muted">Learn</p>
+    <section className="widget p-4 sm:p-5">
+      <p className="text-[11px] font-medium uppercase tracking-wider text-white/45">Learn</p>
       <details className="group mt-2">
-        <summary className="cursor-pointer list-none font-display text-xl marker:hidden">
+        <summary className="flex cursor-pointer list-none items-start justify-between gap-3 text-lg font-semibold leading-snug tracking-tight marker:hidden">
           {fact.q}
-          <span className="ml-2 inline-block text-muted transition group-open:rotate-45">+</span>
+          <span className="mt-0.5 text-white/45 transition group-open:rotate-45">+</span>
         </summary>
-        <p className="mt-3 text-[15px] leading-relaxed text-muted">{fact.a}</p>
+        <p className="mt-3 text-[15px] leading-relaxed text-white/75">{fact.a}</p>
       </details>
     </section>
   )

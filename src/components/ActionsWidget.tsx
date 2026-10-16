@@ -11,7 +11,7 @@ export function ActionsWidget({ context }: { context: Context }) {
   const wx = context.weather
 
   return (
-    <section className="overflow-hidden rounded-[28px] bg-[#1c1c1e] p-4 text-white shadow-2xl shadow-black/30 ring-1 ring-white/10 sm:p-5">
+    <section className="widget overflow-hidden p-4 sm:p-5">
       <div className="flex items-baseline justify-between gap-3">
         <h2 className="text-lg font-semibold tracking-tight sm:text-xl">What you can do</h2>
         {wx && (

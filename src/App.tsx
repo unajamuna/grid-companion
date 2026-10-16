@@ -83,7 +83,7 @@ export default function App() {
       <div className="mx-auto max-w-xl px-4 py-8 sm:py-12">
         <header className="flex items-end justify-between gap-4 px-1 text-charcoal">
           <div>
-            <h1 className="font-display text-2xl">Grid Companion</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">Grid Companion</h1>
             <p className="text-sm text-charcoal/70">{snapshot.region}</p>
           </div>
           <p className="text-right text-xs text-charcoal/70">
@@ -94,8 +94,8 @@ export default function App() {
         </header>
 
         {isDemo && (
-          <p className="mt-4 rounded-xl bg-white/50 px-3 py-2 text-xs text-charcoal/80 backdrop-blur">
-            <strong className="font-semibold">Sample data.</strong>{' '}
+          <p className="widget mt-4 rounded-2xl px-4 py-2.5 text-xs text-white/75">
+            <strong className="font-semibold text-white">Sample data.</strong>{' '}
             {forceDemo
               ? 'Demo mode: plausible numbers for a typical day, not live readings.'
               : "We couldn't reach CAISO just now, so these are plausible numbers for a typical day, not live readings."}
@@ -106,19 +106,19 @@ export default function App() {
           <UsageWidget today={data.today} snapshot={snapshot} phase={phase} isDemo={isDemo} />
           <ActionsWidget context={{ phase, busy, now, weather }} />
 
-          <section className="rounded-3xl bg-white/60 p-6 backdrop-blur-xl">
-            <p className="text-xs font-medium uppercase tracking-widest text-muted">Right now</p>
-            <p className="mt-2 font-display text-xl leading-snug">{phase.summary}</p>
-            <p className="mt-2 text-sm text-muted">
+          <section className="widget p-4 sm:p-5">
+            <h2 className="text-lg font-semibold tracking-tight sm:text-xl">Right now</h2>
+            <p className="mt-2 text-[15px] leading-relaxed text-white/90">{phase.summary}</p>
+            <p className="mt-2 text-xs text-white/55">
               {snapshot.carbonIntensity ?? '—'} g/kWh carbon intensity
               {busy && ' · demand is near today’s peak'}
             </p>
             <button onClick={() => setShowWhy((v) => !v)} aria-expanded={showWhy}
-              className="mt-3 text-sm text-muted underline decoration-dotted underline-offset-4 hover:text-charcoal">
+              className="mt-3 text-xs text-white/55 underline decoration-dotted underline-offset-4 hover:text-white">
               {showWhy ? 'Hide why' : `Why “${phase.label}”?`}
             </button>
             {showWhy && (
-              <p className="mt-2 text-sm leading-relaxed text-muted">
+              <p className="mt-2 text-xs leading-relaxed text-white/70">
                 {phase.why} {data.forecastNote}
               </p>
             )}
@@ -129,21 +129,21 @@ export default function App() {
         </main>
 
         {isDemo && (
-          <section className="mt-6 rounded-2xl bg-white/45 p-4 backdrop-blur">
+          <section className="widget mt-5 p-4 sm:p-5">
             <label htmlFor="preview" className="flex items-baseline justify-between text-sm">
               <span className="font-medium">Preview another time</span>
-              <span className="tabular-nums text-muted">
+              <span className="tabular-nums text-white/55">
                 {offsetH === 0 ? 'Now' : `${fmtTime(now)} (+${offsetH}h)`}
               </span>
             </label>
             <input id="preview" type="range" min={0} max={23} value={offsetH}
               onChange={(e) => setOffsetH(Number(e.target.value))}
-              className="mt-3 w-full accent-[#2e2e2e]" />
-            <p className="mt-1 text-xs text-muted">Demo only. Drag to see how the widgets change through the day.</p>
+              className="mt-3 w-full accent-[#7fd67f]" />
+            <p className="mt-1 text-xs text-white/55">Demo only. Drag to see how the widgets change through the day.</p>
           </section>
         )}
 
-        <footer className="mt-8 space-y-1 text-center text-xs text-charcoal/70">
+        <footer className="mt-8 space-y-1 text-center text-xs text-charcoal/80">
           <p>
             Source: {snapshot.source}
             {snapshot.isEstimated && ' (import emissions are CAISO estimates)'}. Phases compare the next 24 hours
