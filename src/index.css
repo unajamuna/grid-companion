@@ -19,14 +19,3 @@
 body {
   @apply bg-cream text-charcoal font-sans antialiased;
 }
-
-/* A soft, blurred "phone wallpaper" behind the widgets. */
-.wallpaper {
-  background:
-    radial-gradient(60% 45% at 8% 18%, #9fb39a 0%, transparent 70%),
-    radial-gradient(50% 40% at 92% 30%, #cfc4a8 0%, transparent 70%),
-    radial-gradient(55% 45% at 75% 95%, #c19aa0 0%, transparent 70%),
-    radial-gradient(50% 40% at 15% 85%, #8f9bb0 0%, transparent 70%),
-    #b9b3aa;
-  background-attachment: fixed;
-}

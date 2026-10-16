@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { ActionsWidget } from './components/ActionsWidget'
+import { Landscape } from './components/Landscape'
 import { Learn } from './components/Learn'
 import { Rhythm } from './components/Rhythm'
 import { UsageWidget } from './components/UsageWidget'
@@ -64,7 +65,8 @@ export default function App() {
 
   if (live.status === 'loading') {
     return (
-      <div className="wallpaper grid min-h-screen place-items-center">
+      <div className="grid min-h-screen place-items-center">
+        <Landscape />
         <p className="font-display text-lg text-charcoal/70">Checking the grid…</p>
       </div>
     )
@@ -76,7 +78,8 @@ export default function App() {
   const busy = snapshot.demandMW != null && snapshot.demandMW >= peakMW * BUSY_SHARE
 
   return (
-    <div className="wallpaper min-h-screen">
+    <div className="relative min-h-screen">
+      <Landscape />
       <div className="mx-auto max-w-xl px-4 py-8 sm:py-12">
         <header className="flex items-end justify-between gap-4 px-1 text-charcoal">
           <div>

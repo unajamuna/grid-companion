@@ -1,14 +1,13 @@
 import { useState } from 'react'
 import type { Context } from '../logic/actions'
 import { ACTIONS, pickRow, ROWS } from '../logic/actions'
-import { PHASE_STYLE } from './PhaseIcon'
 
 // Same visual system as the usage widget: dark card, sans type, rounded icon tiles.
-// Tags on grid-timed actions take the current phase's colour, tying the two widgets together.
+// Tags on grid-timed actions are green: "this is the best time to do it".
+const TIMED_GREEN = '#7fd67f'
 export function ActionsWidget({ context }: { context: Context }) {
   const [openId, setOpenId] = useState<string | null>(null)
   const open = ACTIONS.find((a) => a.id === openId)
-  const phaseColor = PHASE_STYLE[context.phase.id].color
   const wx = context.weather
 
   return (
@@ -35,7 +34,7 @@ export function ActionsWidget({ context }: { context: Context }) {
                     <a.icon strokeWidth={1.75} className="h-6 w-6 text-white/90 sm:h-7 sm:w-7" aria-hidden />
                     <span className="text-[11px] font-medium leading-tight text-white/90 sm:text-[13px]">{a.label}</span>
                     <span className="text-[10px] leading-tight sm:text-[11px]"
-                      style={{ color: a.timed ? phaseColor : 'rgba(255,255,255,0.45)' }}>
+                      style={{ color: a.timed ? TIMED_GREEN : 'rgba(255,255,255,0.45)' }}>
                       {a.when(context)}
                     </span>
                   </button>
