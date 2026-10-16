@@ -1,0 +1,14 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# CAISO's CSVs don't allow cross-origin browser requests, so Netlify proxies
+# them (status 200 = rewrite, not redirect). vite.config.ts does the same locally.
+[[redirects]]
+  from = "/caiso/*"
+  to = "https://www.caiso.com/outlook/current/:splat"
+  status = 200
+  force = true
