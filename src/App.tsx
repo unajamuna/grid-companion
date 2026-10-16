@@ -116,9 +116,9 @@ export default function App() {
         )}
 
         <main className="mt-5 space-y-5">
-          <WeatherWidget place={place} weather={weather} onPlace={setPlace} />
           <UsageWidget today={data.today} snapshot={snapshot} phase={phase} isDemo={isDemo} />
           <ActionsWidget context={{ phase, busy, now, weather }} />
+          <WeatherWidget place={place} weather={weather} onPlace={setPlace} />
 
           <section className="widget p-4 sm:p-5">
             <h2 className="text-lg font-semibold tracking-tight sm:text-xl">Right now</h2>
