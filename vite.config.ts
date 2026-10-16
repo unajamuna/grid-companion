@@ -27,6 +27,19 @@ function eiaDev(): Plugin {
         res.setHeader('Content-Type', 'application/json')
         res.end(hit.body)
       })
+      // The widget summary shares the app's code, so load it through Vite on demand.
+      server.middlewares.use('/api/summary', async (req, res) => {
+        try {
+          const mod = await server.ssrLoadModule('/netlify/functions/summary.ts')
+          const r: Response = await mod.default(new Request(`http://${req.headers.host}${req.originalUrl}`))
+          res.statusCode = r.status
+          res.setHeader('Content-Type', 'application/json')
+          res.end(await r.text())
+        } catch (e) {
+          res.statusCode = 500
+          res.end(JSON.stringify({ error: String(e) }))
+        }
+      })
     },
   }
 }

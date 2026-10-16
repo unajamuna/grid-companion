@@ -64,15 +64,19 @@ function pacificClock(now: Date) {
   }
 }
 
-async function getCsv(file: string) {
-  const res = await fetch(`/caiso/${file}.csv`, { cache: 'no-store' })
+// In the browser, /caiso is our proxy (vite.config.ts, netlify.toml). Server-side code
+// (the summary function) can pass CAISO's own URL instead.
+export const CAISO_DIRECT = 'https://www.caiso.com/outlook/current'
+
+async function getCsv(file: string, base: string) {
+  const res = await fetch(`${base}/${file}.csv`, typeof window === 'undefined' ? {} : { cache: 'no-store' })
   if (!res.ok) throw new Error(`CAISO ${file}: HTTP ${res.status}`)
   return parseCsv(await res.text())
 }
 
-export async function loadCaiso(now = new Date()): Promise<GridData> {
+export async function loadCaiso(now = new Date(), base = '/caiso'): Promise<GridData> {
   const [fuel, co2, demand, net] = await Promise.all(
-    ['fuelsource', 'co2', 'demand', 'netdemand'].map(getCsv),
+    ['fuelsource', 'co2', 'demand', 'netdemand'].map((f) => getCsv(f, base)),
   )
   const at = pacificClock(now)
 

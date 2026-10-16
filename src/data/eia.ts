@@ -38,13 +38,13 @@ function pacificParts(d: Date) {
   return { day: `${p.year}-${p.month}-${p.day}`, hour: Number(p.hour) }
 }
 
-async function get(data: 'fuel' | 'demand', ba: EiaArea, start: string, retry = true): Promise<Row[]> {
-  const res = await fetch(`/api/eia?data=${data}&ba=${ba}&start=${start}`)
+async function get(data: 'fuel' | 'demand', ba: EiaArea, start: string, base: string, retry = true): Promise<Row[]> {
+  const res = await fetch(`${base}?data=${data}&ba=${ba}&start=${start}`)
   // A cold EIA query can outlast Netlify's 10-second function limit. EIA keeps working
   // on it, so one retry a moment later usually finds it ready.
   if ((res.status === 502 || res.status === 504) && retry) {
     await new Promise((r) => setTimeout(r, 2000))
-    return get(data, ba, start, false)
+    return get(data, ba, start, base, false)
   }
   if (!res.ok) throw new Error(`EIA ${data}: HTTP ${res.status}`)
   return res.json()
@@ -59,11 +59,12 @@ const num = (v: Row['value']) => {
 
 type Hour = { start: Date; day: string; hour: number; fuel: Record<string, number>; demand: number | null }
 
-export async function loadEia(ba: EiaArea, now = new Date()): Promise<GridData> {
+// `base` is our own /api/eia (which holds the key); server-side callers pass an absolute URL.
+export async function loadEia(ba: EiaArea, now = new Date(), base = '/api/eia'): Promise<GridData> {
   // Ask from midnight UTC two days back. The start only changes once a day, so every
   // visitor makes the same request and the shared cache (and EIA's own) stays warm.
   const start = `${new Date(now.getTime() - 54 * 3600_000).toISOString().slice(0, 10)}T00`
-  const [fuel, demand] = await Promise.all([get('fuel', ba, start), get('demand', ba, start)])
+  const [fuel, demand] = await Promise.all([get('fuel', ba, start, base), get('demand', ba, start, base)])
 
   const hours = new Map<number, Hour>()
   const hourAt = (period: string) => {
