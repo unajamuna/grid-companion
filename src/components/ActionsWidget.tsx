@@ -1,55 +1,59 @@
 import { useState } from 'react'
 import type { Context } from '../logic/actions'
 import { ACTIONS, pickRow, ROWS } from '../logic/actions'
+import { PHASE_STYLE } from './PhaseIcon'
 
-// Lively-style widget: a row label, then four actions with icons.
-// The tag under each icon changes with grid conditions; tap one for the reason.
+// Same visual system as the usage widget: dark card, sans type, rounded icon tiles.
+// Tags on grid-timed actions take the current phase's colour, tying the two widgets together.
 export function ActionsWidget({ context }: { context: Context }) {
   const [openId, setOpenId] = useState<string | null>(null)
   const open = ACTIONS.find((a) => a.id === openId)
+  const phaseColor = PHASE_STYLE[context.phase.id].color
+  const wx = context.weather
 
   return (
-    <section className="overflow-hidden rounded-[28px] bg-gradient-to-b from-[#24180c] via-[#120d07] to-black px-2 py-5 text-[#efe4d0] shadow-2xl shadow-black/30 ring-1 ring-white/10 sm:px-5">
-      <h2 className="sr-only">What to do with your energy right now</h2>
-      <p className="mb-4 px-2 text-[11px] text-[#a8957a] sm:text-xs">
-        {context.weather
-          ? `Tips for today · ${context.weather.place} ${context.weather.nowF}°F · ${context.weather.summary}, high ${context.weather.highF}°F`
-          : 'Tips for today'}
-      </p>
-      <div className="grid grid-cols-[4.9rem_repeat(4,minmax(0,1fr))] items-start gap-y-4 sm:grid-cols-[7.5rem_repeat(4,minmax(0,1fr))]">
+    <section className="overflow-hidden rounded-[28px] bg-[#1c1c1e] p-4 text-white shadow-2xl shadow-black/30 ring-1 ring-white/10 sm:p-5">
+      <div className="flex items-baseline justify-between gap-3">
+        <h2 className="text-lg font-semibold tracking-tight sm:text-xl">What you can do</h2>
+        {wx && (
+          <p className="text-right text-[11px] text-white/55 sm:text-xs">
+            {wx.place} {wx.nowF}°F · {wx.summary}, high {wx.highF}°
+          </p>
+        )}
+      </div>
+
+      <div className="mt-3 space-y-4">
         {ROWS.map((row) => (
-          <Row key={row.id} label={row.label} tone={row.tone}>
-            {pickRow(row.id, context).map((a) => {
-              const selected = a.id === openId
-              return (
-                <button key={a.id} onClick={() => setOpenId(selected ? null : a.id)} aria-expanded={selected}
-                  className={`flex flex-col items-center gap-1 rounded-2xl px-0.5 py-1.5 text-center transition ${selected ? 'bg-white/10' : 'hover:bg-white/5'}`}>
-                  <a.icon strokeWidth={1.5} className="h-7 w-7 text-[#f3e3c3] sm:h-8 sm:w-8" aria-hidden />
-                  <span className="text-[11px] font-medium leading-tight text-[#e8dcc6] sm:text-[13px]">{a.label}</span>
-                  <span className="text-[10px] leading-tight text-[#a8957a] sm:text-[11px]">{a.when(context)}</span>
-                </button>
-              )
-            })}
-          </Row>
+          <div key={row.id}>
+            <h3 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-white/45">{row.label}</h3>
+            <div className="grid grid-cols-4 gap-2">
+              {pickRow(row.id, context).map((a) => {
+                const selected = a.id === openId
+                return (
+                  <button key={a.id} onClick={() => setOpenId(selected ? null : a.id)} aria-expanded={selected}
+                    className={`flex flex-col items-center gap-1.5 rounded-2xl px-1 py-2.5 text-center transition ${selected ? 'bg-white/15' : 'bg-[#2c2c2e] hover:bg-[#3a3a3c]'}`}>
+                    <a.icon strokeWidth={1.75} className="h-6 w-6 text-white/90 sm:h-7 sm:w-7" aria-hidden />
+                    <span className="text-[11px] font-medium leading-tight text-white/90 sm:text-[13px]">{a.label}</span>
+                    <span className="text-[10px] leading-tight sm:text-[11px]"
+                      style={{ color: a.timed ? phaseColor : 'rgba(255,255,255,0.45)' }}>
+                      {a.when(context)}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
         ))}
       </div>
 
-      {open && (
-        <div className="mx-1 mt-4 rounded-2xl bg-white/[0.07] p-4" aria-live="polite">
-          <p className="font-display text-lg leading-snug text-[#f6ecda]">{open.detail(context)}</p>
-          {open.note && <p className="mt-2 text-xs text-[#a8957a]">{open.note}</p>}
+      {open ? (
+        <div className="mt-4 rounded-2xl bg-white/[0.07] p-4" aria-live="polite">
+          <p className="text-[15px] leading-relaxed text-white/90">{open.detail(context)}</p>
+          {open.note && <p className="mt-2 text-xs text-white/45">{open.note}</p>}
         </div>
+      ) : (
+        <p className="mt-4 text-center text-[11px] text-white/45">Tap any action to see why</p>
       )}
-      {!open && <p className="mt-4 text-center text-[11px] text-[#a8957a]">Tap any action to see why</p>}
     </section>
-  )
-}
-
-function Row({ label, tone, children }: { label: string; tone: string; children: React.ReactNode }) {
-  return (
-    <>
-      <p className={`self-center pl-1 font-display text-[19px] leading-none sm:text-[34px] ${tone}`}>{label}</p>
-      {children}
-    </>
   )
 }

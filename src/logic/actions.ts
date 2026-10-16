@@ -13,11 +13,11 @@ import type { Phase } from '../types'
 import { fmtTag, fmtTime, fmtWhen } from './phase'
 
 export type Row = 'home' | 'tech' | 'save' | 'unwind'
-export const ROWS: { id: Row; label: string; tone: string }[] = [
-  { id: 'home', label: 'Home', tone: 'text-[#d9a066]' },
-  { id: 'tech', label: 'Tech', tone: 'text-[#f3ead9]' },
-  { id: 'save', label: 'Save', tone: 'text-[#b8a98f]' },
-  { id: 'unwind', label: 'Unwind', tone: 'text-[#d9a066]' },
+export const ROWS: { id: Row; label: string }[] = [
+  { id: 'home', label: 'Home' },
+  { id: 'tech', label: 'Tech' },
+  { id: 'save', label: 'Save' },
+  { id: 'unwind', label: 'Unwind' },
 ]
 export const PER_ROW = 4
 
