@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { ActionsWidget } from './components/ActionsWidget'
 import { Landscape } from './components/Landscape'
-import { Learn } from './components/Learn'
 import { Rhythm } from './components/Rhythm'
 import { UsageWidget } from './components/UsageWidget'
 import { WeatherWidget } from './components/WeatherWidget'
@@ -139,7 +138,6 @@ export default function App() {
           </section>
 
           <Rhythm forecast={data.forecast} current={snapshot.carbonIntensity} />
-          <Learn phaseId={phase.id} />
         </main>
 
         {isDemo && (
