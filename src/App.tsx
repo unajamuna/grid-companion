@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { ActionsWidget } from './components/ActionsWidget'
 import { Landscape } from './components/Landscape'
+import { LocationBar } from './components/LocationBar'
 import { Rhythm } from './components/Rhythm'
 import { UsageWidget } from './components/UsageWidget'
 import { WeatherWidget } from './components/WeatherWidget'
@@ -11,7 +12,7 @@ import { loadWeather } from './data/weather'
 import { sampleGridData } from './data/sample'
 import { classify, fmtDayTime, fmtTime } from './logic/phase'
 import type { Place } from './location'
-import { loadPlace, savePlace } from './location'
+import { gridFor, loadPlace, savePlace } from './location'
 import type { GridData } from './types'
 
 const BUSY_SHARE = 0.9 // demand within 10% of today's peak counts as "busy"
@@ -42,7 +43,7 @@ export default function App() {
     return () => clearInterval(t)
   }, [])
 
-  const grid = GRIDS[place.otherGrid ?? 'CAISO']
+  const grid = GRIDS[gridFor(place)]
   useEffect(() => {
     if (forceDemo) return
     let cancelled = false
@@ -90,9 +91,13 @@ export default function App() {
 
   if (live.status === 'loading') {
     return (
-      <div className="grid min-h-screen place-items-center">
+      <div className="relative min-h-screen">
         <Landscape />
-        <p className="font-display text-lg text-charcoal/70">Checking the grid…</p>
+        <div className="mx-auto max-w-xl px-4 py-8 sm:py-12">
+          <h1 className="px-1 text-2xl font-semibold tracking-tight text-charcoal">Grid Companion</h1>
+          <LocationBar place={place} onPlace={setPlace} />
+          <p className="mt-16 text-center text-lg text-charcoal/70">Checking the {grid.name} grid…</p>
+        </div>
       </div>
     )
   }
@@ -110,12 +115,7 @@ export default function App() {
       <Landscape />
       <div className="mx-auto max-w-xl px-4 py-8 sm:py-12">
         <header className="flex items-end justify-between gap-4 px-1 text-charcoal">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Grid Companion</h1>
-            <p className="text-sm text-charcoal/70">
-              {delayed ? `${place.place} · ${snapshot.region}` : 'California · CAISO grid'}
-            </p>
-          </div>
+          <h1 className="text-2xl font-semibold tracking-tight">Grid Companion</h1>
           <p className="text-right text-xs text-charcoal/70">
             {isDemo ? (
               `Sample · ${fmtTime(observedAt)}`
@@ -126,6 +126,8 @@ export default function App() {
             )}
           </p>
         </header>
+
+        <LocationBar place={place} onPlace={setPlace} />
 
         {isDemo && (
           <p className="widget mt-4 rounded-2xl px-4 py-2.5 text-xs text-white/75">
@@ -148,7 +150,7 @@ export default function App() {
           <UsageWidget today={data.today} snapshot={snapshot} phase={phase} isDemo={isDemo}
             delayed={delayed} recordMW={data.recordMW} />
           <ActionsWidget context={{ phase, busy, now, weather }} />
-          <WeatherWidget place={place} weather={weather} onPlace={setPlace} />
+          <WeatherWidget place={place} weather={weather} />
 
           <section className="widget p-4 sm:p-5">
             <h2 className="text-lg font-semibold tracking-tight sm:text-xl">Right now</h2>

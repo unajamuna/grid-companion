@@ -2,12 +2,25 @@
 // requests). Used for local weather and tips. Every California ZIP shows CAISO data;
 // we flag ZIPs that are probably on a separate grid instead of guessing silently.
 
+export type GridId = 'CAISO' | 'LADWP' | 'SMUD'
+
 export type Place = {
   zip: string
   place: string
   lat: number
   lon: number
-  otherGrid: 'LADWP' | 'SMUD' | null // probably on a grid we don't support yet
+  otherGrid: 'LADWP' | 'SMUD' | null // our guess from the ZIP: probably on a separate grid
+  gridOverride?: GridId // set when the viewer picks a grid themselves
+}
+
+// A ZIP is only a good guess (some LA ZIPs are split between LADWP and SCE), so the
+// viewer can override it. Their pick wins until they enter a new ZIP.
+export const gridFor = (p: Place): GridId => p.gridOverride ?? p.otherGrid ?? 'CAISO'
+
+export const GRID_INFO: Record<GridId, { label: string; who: string; live: boolean }> = {
+  CAISO: { label: 'CAISO', who: 'PG&E, SCE, SDG&E and most of California', live: true },
+  LADWP: { label: 'LADWP', who: 'City of Los Angeles', live: false },
+  SMUD: { label: 'SMUD', who: 'Sacramento (BANC grid)', live: false },
 }
 
 export const DEFAULT_PLACE: Place = { zip: '94612', place: 'Oakland', lat: 37.81, lon: -122.27, otherGrid: null }
