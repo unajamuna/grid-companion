@@ -86,7 +86,8 @@ export async function loadCaiso(now = new Date()): Promise<GridData> {
     .filter((r) => r.supply > 0)
   if (observed.length < 3) throw new Error('CAISO has too little data for today yet')
 
-  const latest = observed[observed.length - 1]
+  // CAISO sometimes posts the newest mix row before its CO₂ row; use the newest complete one.
+  const latest = [...observed].reverse().find((r) => r.ci != null) ?? observed[observed.length - 1]
   const latestDemand = [...demand].reverse().find((r) => Number.isFinite(r.v['Current demand']))
   // Renewable: solar, wind, hydro, geothermal, biomass/biogas. Carbon-free adds nuclear.
   // Batteries and imports are left out of both, since we can't see what they carry.

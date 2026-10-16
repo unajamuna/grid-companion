@@ -16,7 +16,7 @@ export function ActionsWidget({ context }: { context: Context }) {
           ? `Tips for today · ${context.weather.place} ${context.weather.nowF}°F · ${context.weather.summary}, high ${context.weather.highF}°F`
           : 'Tips for today'}
       </p>
-      <div className="grid grid-cols-[4.4rem_repeat(4,minmax(0,1fr))] items-start gap-y-4 sm:grid-cols-[7rem_repeat(4,minmax(0,1fr))]">
+      <div className="grid grid-cols-[4.9rem_repeat(4,minmax(0,1fr))] items-start gap-y-4 sm:grid-cols-[7.5rem_repeat(4,minmax(0,1fr))]">
         {ROWS.map((row) => (
           <Row key={row.id} label={row.label} tone={row.tone}>
             {pickRow(row.id, context).map((a) => {
@@ -48,7 +48,7 @@ export function ActionsWidget({ context }: { context: Context }) {
 function Row({ label, tone, children }: { label: string; tone: string; children: React.ReactNode }) {
   return (
     <>
-      <p className={`self-center pl-1 font-display text-[21px] leading-none sm:text-[38px] ${tone}`}>{label}</p>
+      <p className={`self-center pl-1 font-display text-[19px] leading-none sm:text-[34px] ${tone}`}>{label}</p>
       {children}
     </>
   )

@@ -1,19 +1,23 @@
-import type { LucideIcon } from 'lucide-react'
+import type { LucideProps } from 'lucide-react'
+import type { ComponentType } from 'react'
 import {
   AirVent, BatteryCharging, Blinds, CarFront, Clapperboard, CloudUpload, CookingPot, Cpu, DoorClosed, Droplet,
   Droplets, Fan, Gauge, Heater, Laptop, LampDesk, Lightbulb, Moon, Power, Refrigerator, RefreshCw, Shirt,
   ShowerHead, Snowflake, Sparkles, SunDim, Thermometer, ThermometerSnowflake, TreePine, Tv, Wrench, Filter,
-  UtensilsCrossed, WashingMachine, Waves, Wind,
+  UtensilsCrossed, WashingMachine, Waves, Wind, TreeDeciduous, BookOpen, Puzzle, Dices, Sun, Sunset,
+  Unplug, Microwave, Grid3x3, Bath, CalendarClock, Telescope, Sofa,
 } from 'lucide-react'
+import { Sock } from '../icons'
 import type { Weather } from '../data/weather'
 import type { Phase } from '../types'
 import { fmtTag, fmtTime, fmtWhen } from './phase'
 
-export type Row = 'home' | 'tech' | 'save'
+export type Row = 'home' | 'tech' | 'save' | 'unwind'
 export const ROWS: { id: Row; label: string; tone: string }[] = [
   { id: 'home', label: 'Home', tone: 'text-[#d9a066]' },
   { id: 'tech', label: 'Tech', tone: 'text-[#f3ead9]' },
   { id: 'save', label: 'Save', tone: 'text-[#b8a98f]' },
+  { id: 'unwind', label: 'Unwind', tone: 'text-[#d9a066]' },
 ]
 export const PER_ROW = 4
 
@@ -23,7 +27,7 @@ export type Action = {
   id: string
   row: Row
   label: string
-  icon: LucideIcon
+  icon: ComponentType<LucideProps>
   when: (c: Context) => string // the short tag under the icon
   detail: (c: Context) => string // the full suggestion when tapped
   note?: string
@@ -68,11 +72,18 @@ const heatWave = (c: Context) => (w(c)?.highF ?? 0) >= 90
 const cold = (c: Context) => !!w(c) && (w(c)!.highF < 60 || w(c)!.lowF < 42)
 const sunnyDry = (c: Context) => !!w(c) && w(c)!.sunny && w(c)!.rainChance < 30
 const coolNight = (c: Context) => warm(c) && (w(c)?.lowF ?? 99) <= 62
+const chilly = (c: Context) => !!w(c) && (w(c)!.lowF <= 55 || w(c)!.highF < 65)
+const rainy = (c: Context) => (w(c)?.rainChance ?? 0) >= 50
+const evening = (c: Context) => hour(c) >= 16 && hour(c) < 21
+// The moments when using a little less matters most.
+const peakish = (c: Context) => evening(c) || c.busy || c.phase.id === 'higher-carbon'
 const holidays = (c: Context) =>
   (month(c) === 11 && c.now.getDate() >= 20) || month(c) === 12 || (month(c) === 1 && c.now.getDate() <= 6)
 
 const AI_NOTE = "We can't see how much energy a specific model or provider uses. This is about grid timing only."
 const PGE = "Adapted from PG&E's energy-saving tips."
+const SHAKER = "Adapted from the Shaker Heights Energy Subcommittee's tips."
+const SMALL = 'A small saving on its own, but small habits add up, and they help most during the 4–9 PM peak.'
 const COMFORT = 'Only if it’s comfortable and safe for everyone at home, health permitting.'
 
 // Hand-written on purpose: no model is making up energy advice.
@@ -81,7 +92,7 @@ export const ACTIONS: Action[] = [
   // ---- Home: flexible loads, timed to the grid ----
   { id: 'dishwasher', row: 'home', label: 'Dishwasher', icon: UtensilsCrossed, timed: true, note: PGE,
     when: (c) => timed(c).when,
-    detail: (c) => `Run a full dishwasher ${timed(c).phrase}. Skip the heated dry and let dishes air-dry.${busyNote(c)}` },
+    detail: (c) => `Run a full dishwasher ${timed(c).phrase}. No need to pre-rinse, and skip the heated dry.${busyNote(c)}` },
   { id: 'laundry', row: 'home', label: 'Laundry', icon: WashingMachine, timed: true, note: PGE,
     when: (c) => timed(c).when,
     detail: (c) => `Start your next full load ${timed(c).phrase}. Dry loads back to back so the dryer is already warm.${busyNote(c)}` },
@@ -171,10 +182,10 @@ export const ACTIONS: Action[] = [
     fits: holidays, boost: () => 2,
     when: () => 'This season',
     detail: () => 'Put holiday lights on a timer so they switch off overnight. LED strings use far less than older bulbs.' },
-  { id: 'ac-filter', row: 'save', label: 'AC filter', icon: AirVent,
-    fits: (c) => inMonths(c, 4, 5, 6), boost: () => 1,
+  { id: 'air-filter', row: 'save', label: 'Air filter', icon: Grid3x3, note: SHAKER,
+    fits: (c) => inMonths(c, 4, 5, 6, 10, 11), boost: () => 1,
     when: () => 'This season',
-    detail: () => 'Swap or clean the AC filter before summer. A clogged filter makes the system work harder.' },
+    detail: () => 'Check your heating and AC filter every couple of months. Hold it up to a light: if light barely gets through, replace it. A clogged filter makes the system work harder.' },
   { id: 'glass-dish', row: 'save', label: 'Glass dish', icon: CookingPot, note: PGE,
     fits: (c) => inMonths(c, 10, 11, 12, 1, 2, 3, 4),
     when: () => 'When baking',
@@ -197,7 +208,7 @@ export const ACTIONS: Action[] = [
     detail: () => 'Put chargers, TVs and consoles on a power strip and switch it off when you’re done. Standby power adds up.' },
   { id: 'fridge', row: 'save', label: 'Fridge', icon: Refrigerator, note: PGE,
     when: () => 'Anytime',
-    detail: () => 'Keep the fridge at 38–42°F and the freezer at 0–5°F, leave space around it, and clean the coils now and then.' },
+    detail: () => 'Keep the fridge at 38–42°F and the freezer at 0–5°F, leave space around it, clean the coils now and then, and switch the ice maker off when you don’t need it.' },
   { id: 'lint', row: 'save', label: 'Lint screen', icon: Filter, note: PGE,
     when: () => 'Every load',
     detail: () => 'Clean the dryer lint screen before every load. A dry towel in the drum can also shorten drying time.' },
@@ -211,6 +222,68 @@ export const ACTIONS: Action[] = [
     when: () => 'One-time',
     detail: () => 'An efficient showerhead or faucet aerator uses less hot water, usually for under $20.' },
 ]
+
+// ---- More small habits ----
+ACTIONS.push(
+  { id: 'daylight', row: 'save', label: 'Daylight', icon: Sun, note: SMALL,
+    fits: (c) => hour(c) >= 8 && hour(c) < 16 && (w(c)?.sunny ?? true), boost: () => 1,
+    when: () => 'Today',
+    detail: () => 'Open the curtains and switch the lights off while it’s bright out.' },
+  { id: 'curtains', row: 'save', label: 'Curtains', icon: Sunset, note: SMALL,
+    fits: (c) => chilly(c) && hour(c) >= 15 && hour(c) < 21, boost: () => 2,
+    when: () => 'At dusk',
+    detail: () => 'Close curtains and blinds at dusk to keep the day’s warmth inside.' },
+  { id: 'unplug', row: 'save', label: 'Unplug', icon: Unplug, note: PGE,
+    when: () => 'Anytime',
+    detail: () => 'Unplug small appliances you’re not using, like the coffee maker, toaster and spare chargers. Many draw power even when off.' },
+  { id: 'microwave', row: 'save', label: 'Microwave', icon: Microwave, note: SHAKER,
+    boost: (c) => (hour(c) >= 17 && hour(c) < 20 ? 1 : 0),
+    when: () => 'At dinner',
+    detail: () => 'Heating a small portion? A microwave or toaster oven uses about half the energy of the full oven.' },
+  { id: 'vents', row: 'save', label: 'Vents', icon: AirVent, note: SHAKER,
+    boost: (c) => (warm(c) || cold(c) ? 1 : 0),
+    when: () => 'Anytime',
+    detail: () => 'Make sure air vents aren’t blocked by furniture, rugs or toys. Air that moves freely takes less energy to heat or cool.' },
+  { id: 'water-heater', row: 'save', label: 'Water 120°F', icon: Bath, note: SHAKER,
+    when: () => 'One-time',
+    detail: () => 'Set the water heater to 120°F. Hotter wastes energy, but don’t go lower: below 120°F bacteria can grow in the tank.' },
+  { id: 'schedule', row: 'save', label: 'Schedule', icon: CalendarClock, note: SHAKER,
+    boost: (c) => (warm(c) || cold(c) ? 1 : 0),
+    when: () => 'One-time',
+    detail: () => 'If you have a programmable thermostat, set it to ease off while you’re asleep or away and come back before you are.' },
+
+  // ---- Unwind: cozy, screen-free ways to use a little less, best at peak time ----
+  { id: 'socks', row: 'unwind', label: 'Socks', icon: Sock, note: SMALL,
+    fits: (c) => chilly(c) && (hour(c) >= 16 || hour(c) < 10), boost: (c) => (peakish(c) ? 3 : 2),
+    when: (c) => (hour(c) < 10 ? 'This morning' : 'Tonight'),
+    detail: (c) => `Chilly out, down to about ${w(c)!.lowF}°F. Warm socks and a sweater before you reach for the thermostat.` },
+  { id: 'blanket', row: 'unwind', label: 'Blanket', icon: Sofa, note: SMALL,
+    fits: (c) => chilly(c) && hour(c) >= 17, boost: () => 1,
+    when: () => 'Tonight',
+    detail: () => 'Curl up under a blanket on the couch instead of warming the whole house.' },
+  { id: 'outside', row: 'unwind', label: 'Go outside', icon: TreeDeciduous, note: SMALL,
+    fits: (c) => !rainy(c) && hour(c) >= 7 && hour(c) < 21, boost: (c) => (peakish(c) ? 3 : 1),
+    when: (c) => (evening(c) ? 'Now' : 'Today'),
+    detail: (c) => (evening(c)
+      ? 'The grid is busiest from about 4 to 9 PM. A walk, some gardening or a chat on the porch means fewer lights and screens on at home.'
+      : 'Get outside while it’s light. Nothing to plug in.') },
+  { id: 'read', row: 'unwind', label: 'Read', icon: BookOpen, note: SMALL,
+    boost: (c) => (peakish(c) ? 2 : 0),
+    when: (c) => (hour(c) >= 16 ? 'Tonight' : 'Anytime'),
+    detail: () => 'Swap an hour of TV or scrolling for a book, by one lamp.' },
+  { id: 'puzzle', row: 'unwind', label: 'Puzzle', icon: Puzzle, note: SMALL,
+    boost: (c) => (peakish(c) ? 2 : 0),
+    when: (c) => (hour(c) >= 16 ? 'Tonight' : 'Anytime'),
+    detail: () => 'Work on a jigsaw, crossword or sudoku instead of a screen.' },
+  { id: 'game-night', row: 'unwind', label: 'Game night', icon: Dices, note: SMALL,
+    fits: (c) => hour(c) >= 15, boost: (c) => (peakish(c) ? 2 : 0),
+    when: () => 'Tonight',
+    detail: () => 'Pull out a board game or a deck of cards. One table lamp, no screens.' },
+  { id: 'stargaze', row: 'unwind', label: 'Stargaze', icon: Telescope, note: SMALL,
+    fits: (c) => !!w(c)?.sunny && !rainy(c) && (hour(c) >= 19 || hour(c) < 1), boost: () => 1,
+    when: () => 'Tonight',
+    detail: () => 'Clear skies tonight. Turn the lights off and step outside for a few minutes.' },
+)
 
 // Stable 0–1 shuffle per tip per day, so habits rotate daily but don't jump on refresh.
 function daily(id: string, now: Date) {
