@@ -28,3 +28,4 @@ dist-ssr
 releases/
 widgets/scriptable/dev/preview*.html
 .netlify/
+.vercel/

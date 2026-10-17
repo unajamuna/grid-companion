@@ -33,8 +33,8 @@ export default async function handler(req: Request): Promise<Response> {
 
   let body: { response?: { data?: unknown[] }; error?: unknown }
   try {
-    // Netlify stops functions at 10 seconds.
-    const res = await fetch(url, { signal: AbortSignal.timeout(9_000) })
+    // Netlify stops functions at 10 seconds; Vercel allows 30 (vercel build sets maxDuration).
+    const res = await fetch(url, { signal: AbortSignal.timeout(process.env.VERCEL ? 25_000 : 9_000) })
     if (!res.ok) return json({ error: `EIA: HTTP ${res.status}` }, 502)
     body = (await res.json()) as typeof body
   } catch {
@@ -48,6 +48,7 @@ export default async function handler(req: Request): Promise<Response> {
     'Cache-Control': 'public, max-age=600',
     // `durable` keeps one copy for every edge node, so a slow EIA fetch is shared site-wide.
     'Netlify-CDN-Cache-Control': 'public, durable, s-maxage=900, stale-while-revalidate=3600',
+    'Vercel-CDN-Cache-Control': 'public, s-maxage=900, stale-while-revalidate=3600',
   })
 }
 
