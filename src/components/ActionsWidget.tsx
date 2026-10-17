@@ -5,7 +5,7 @@ import { effortOf, goalOf, mood, pickProject, pickRow, ROWS } from '../logic/act
 
 // Same visual system as the usage widget: dark card, sans type, rounded icon tiles.
 // Tags on grid-timed actions are green: "this is the best time to do it".
-const TIMED_GREEN = '#7fd67f'
+const TIMED_GREEN = '#44a861'
 
 const EFFORT: Record<Effort, string> = { seconds: 'Takes seconds', minutes: 'A few minutes', project: 'A project' }
 const GOAL: Record<Goal, { label: string; color: string }> = {

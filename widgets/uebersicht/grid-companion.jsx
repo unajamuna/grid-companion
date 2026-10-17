@@ -31,13 +31,13 @@ export const className = `
 
 // Same colours as the website.
 const PHASE = {
-  clean: { color: '#6cc070', mark: '●' },
+  clean: { color: '#44a861', mark: '●' },
   'cleaner-later': { color: '#4f8ff7', mark: '◷' },
   mixed: { color: '#f2c14e', mark: '◌' },
   'higher-carbon': { color: '#e5534b', mark: '▲' },
   unavailable: { color: '#aeaeb2', mark: '?' },
 }
-const GREEN = '#7fd67f'
+const GREEN = '#44a861'
 const dim = (a) => `rgba(255,255,255,${a})`
 
 const time = (iso) => new Date(iso).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })

@@ -185,7 +185,7 @@ const CSS = `
   .brand { display: flex; align-items: center; gap: 8px; font-size: 12px; color: rgba(255,255,255,.55); }
   .dot { width: 8px; height: 8px; border-radius: 4px; background: #aeaeb2; }
   .dot.dirty { background: #e5534b; } .dot.peak { background: #f2c14e; }
-  .dot.later { background: #4f8ff7; } .dot.clean { background: #7fd67f; }
+  .dot.later { background: #4f8ff7; } .dot.clean { background: #44a861; }
   h1 { margin: 10px 0 0; font-size: 20px; line-height: 1.25; font-weight: 650; letter-spacing: -0.01em; }
   p { margin: 10px 0 0; font-size: 14px; line-height: 1.5; color: rgba(255,255,255,.78); }
   .q { margin-top: 16px; font-weight: 600; color: #fff; }
@@ -195,9 +195,9 @@ const CSS = `
     background: #2c2c2e; color: rgba(255,255,255,.92); cursor: pointer; text-align: center;
   }
   button:hover { background: #3a3a3c; }
-  button:focus-visible { outline: 2px solid #7fd67f; outline-offset: 2px; }
-  button.primary { margin-top: 12px; background: #7fd67f; color: #1c1c1e; }
-  button.primary:hover { filter: brightness(1.08); background: #7fd67f; }
+  button:focus-visible { outline: 2px solid #44a861; outline-offset: 2px; }
+  button.primary { margin-top: 12px; background: #44a861; color: #1c1c1e; }
+  button.primary:hover { filter: brightness(1.08); background: #44a861; }
   button.ghost { background: transparent; color: rgba(255,255,255,.7); font-weight: 500; }
   button.ghost:hover { background: rgba(255,255,255,.08); }
   button.link {

@@ -41,7 +41,7 @@ export function WeatherWidget({ place, weather }: { place: Place; weather: Weath
           </div>
         </div>
         <p className="shrink-0 text-right text-xs text-white/55">
-          <MapPin size={12} className="mr-1 inline align-[-1px] text-[#7fd67f]" aria-hidden />
+          <MapPin size={12} className="mr-1 inline align-[-1px] text-[#44a861]" aria-hidden />
           {place.place}
         </p>
       </div>

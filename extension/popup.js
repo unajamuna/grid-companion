@@ -2,7 +2,7 @@
 const $ = (id) => document.getElementById(id)
 const esc = (t) => String(t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c])
 const PHASE_COLOR = {
-  clean: '#6cc070', 'cleaner-later': '#4f8ff7', mixed: '#f2c14e', 'higher-carbon': '#e5534b', unavailable: '#aeaeb2',
+  clean: '#44a861', 'cleaner-later': '#4f8ff7', mixed: '#f2c14e', 'higher-carbon': '#e5534b', unavailable: '#aeaeb2',
 }
 
 async function renderStatus() {

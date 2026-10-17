@@ -5,7 +5,7 @@ import type { PhaseId } from '../types'
 
 // Red is shared with "Gas & imports" in the chart on purpose: both mean fossil.
 export const PHASE_STYLE: Record<PhaseId, { icon: (p: LucideProps) => React.ReactNode; color: string }> = {
-  clean: { icon: Leaf, color: '#6cc070' },
+  clean: { icon: Leaf, color: '#44a861' },
   'cleaner-later': { icon: Clock, color: '#4f8ff7' },
   mixed: { icon: Spiral, color: '#f2c14e' },
   'higher-carbon': { icon: Flame, color: '#e5534b' },

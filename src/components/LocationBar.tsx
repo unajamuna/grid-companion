@@ -40,7 +40,7 @@ export function LocationBar({ place, onPlace }: { place: Place; onPlace: (p: Pla
           <button onClick={() => { setZip(place.zip); setEditing(true) }}
             className="inline-flex items-center gap-1.5 rounded-full bg-white/10 py-1.5 pr-3 pl-2.5 text-xs text-white/90 transition hover:bg-white/20"
             aria-label={`Change ZIP code, currently ${place.place} ${place.zip}`}>
-            <MapPin size={14} className="text-[#7fd67f]" aria-hidden />
+            <MapPin size={14} className="text-[#44a861]" aria-hidden />
             {place.place} · {place.zip}
             <Pencil size={11} className="text-white/50" aria-hidden />
           </button>
@@ -72,9 +72,9 @@ export function LocationBar({ place, onPlace }: { place: Place; onPlace: (p: Pla
             <input id="zip" inputMode="numeric" autoComplete="postal-code" maxLength={5} autoFocus
               value={zip} onChange={(e) => { setZip(e.target.value.replace(/\D/g, '')); setError(null) }}
               placeholder="94612"
-              className="w-28 rounded-xl bg-[#2c2c2e] px-3 py-2 text-base tabular-nums text-white outline-none ring-1 ring-white/10 placeholder:text-white/30 focus:ring-[#7fd67f]" />
+              className="w-28 rounded-xl bg-[#2c2c2e] px-3 py-2 text-base tabular-nums text-white outline-none ring-1 ring-white/10 placeholder:text-white/30 focus:ring-[#44a861]" />
             <button type="submit" disabled={busy}
-              className="rounded-xl bg-[#7fd67f] px-4 py-2 text-sm font-semibold text-[#1c1c1e] transition hover:brightness-110">
+              className="rounded-xl bg-[#44a861] px-4 py-2 text-sm font-semibold text-[#1c1c1e] transition hover:brightness-110">
               {busy ? 'Checking…' : 'Update'}
             </button>
             <button type="button" onClick={() => { setEditing(false); setError(null) }}

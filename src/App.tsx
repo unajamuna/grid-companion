@@ -122,7 +122,7 @@ export default function App() {
             ) : delayed ? (
               <><span className="mr-1 inline-block h-1.5 w-1.5 rounded-full bg-[#c98a1b] align-middle" />Delayed · as of {fmtDayTime(observedAt)}</>
             ) : (
-              <><span className="mr-1 inline-block h-1.5 w-1.5 rounded-full bg-[#3f9b4a] align-middle" />Live · {fmtTime(observedAt)}</>
+              <><span className="mr-1 inline-block h-1.5 w-1.5 rounded-full bg-[#44a861] align-middle" />Live · {fmtTime(observedAt)}</>
             )}
           </p>
         </header>
@@ -177,7 +177,7 @@ export default function App() {
             </label>
             <input id="preview" type="range" min={0} max={23} value={offsetH}
               onChange={(e) => setOffsetH(Number(e.target.value))}
-              className="mt-3 w-full accent-[#7fd67f]" />
+              className="mt-3 w-full accent-[#44a861]" />
             <p className="mt-1 text-xs text-white/55">Demo only. Drag to see how the widgets change through the day.</p>
           </section>
         )}

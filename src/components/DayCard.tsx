@@ -8,7 +8,7 @@ import type { ForecastPoint, Phase } from '../types'
 const W = 600
 const H = 150
 const PAD = { l: 8, r: 8, t: 16, b: 8 }
-const GREEN = '#7fd67f'
+const GREEN = '#44a861'
 
 const REASON_ICON: Record<Reason['kind'], { icon: typeof Sun; color: string }> = {
   sun: { icon: Sun, color: '#f2c14e' },

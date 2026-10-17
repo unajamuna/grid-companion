@@ -13,7 +13,7 @@ export const GROUPS: Record<Group, { label: string; color: string; icon: LucideI
   solar: { label: 'Solar', color: '#f2c14e', icon: Sun, members: ['solar'] },
   water: { label: 'Wind & water', color: '#4f8ff7', icon: Wind, members: ['wind', 'hydro', 'geothermal'] },
   nuclear: { label: 'Nuclear & other', color: '#a78bfa', icon: Atom, members: ['nuclear', 'other'] },
-  batteries: { label: 'Batteries', color: '#6cc070', icon: BatteryCharging, members: ['batteries'] },
+  batteries: { label: 'Batteries', color: '#44a861', icon: BatteryCharging, members: ['batteries'] },
   fossil: { label: 'Gas & imports', color: '#e5534b', icon: Flame, members: ['gas', 'imports'] },
 }
 
