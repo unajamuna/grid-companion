@@ -66,7 +66,7 @@ Each later update: bump `version` in `extension/manifest.json`, run the script a
 
 **Small promo tile (440×280):** `store/images/promo-tile-440x280.png`
 
-**Official URL / homepage:** https://gridcompanion.netlify.app
+**Official URL / homepage:** https://grid-companion.vercel.app
 
 **Support URL:** https://github.com/unajamuna/grid-companion/issues
 
@@ -80,13 +80,13 @@ Each later update: bump `version` in `extension/manifest.json`, run the script a
 - **storage:** Saves the user's settings on their device: ZIP code, whether pauses and tips are on, tip frequency, small counters, per-site snoozes, and reminders the user chose to set.
 - **alarms:** Refreshes grid conditions every 15 minutes, schedules the reminders the user asks for ("Save it for later"), and spaces out optional energy tips.
 - **notifications:** Shows the reminder when cleaner power arrives, and the optional energy-tip notifications the user turned on.
-- **Host permission (gridcompanion.netlify.app):** Fetches current grid conditions for the user's ZIP code from the extension's own website.
+- **Host permission (grid-companion.vercel.app):** Fetches current grid conditions for the user's ZIP code from the extension's own website.
 - **Content scripts on chatgpt.com, chat.openai.com, claude.ai, gemini.google.com, www.perplexity.ai and copilot.microsoft.com:** Shows the pause screen on these AI chat sites when the grid is carbon-heavy or near its peak. The script only checks which site is open. It does not read or change page content, and it doesn't send anything from the page.
 
 **Are you using remote code?** No. All JavaScript is included in the package.
 
 **Data usage.** Check only:
-- **Location**, because the user's ZIP code is sent to gridcompanion.netlify.app to look up local grid conditions and weather.
+- **Location**, because the user's ZIP code is sent to grid-companion.vercel.app to look up local grid conditions and weather.
 
 Leave everything else unchecked: no personal identity, health, financial, authentication, personal communications, web history (the saved chat address stays on the device) or user activity data is collected.
 
@@ -95,7 +95,7 @@ Then tick all three certifications:
 - I do not use or transfer user data for purposes that are unrelated to my item's single purpose.
 - I do not use or transfer user data to determine creditworthiness or for lending purposes.
 
-**Privacy policy URL:** https://gridcompanion.netlify.app/privacy.html
+**Privacy policy URL:** https://grid-companion.vercel.app/privacy.html
 
 ## 4. Distribution tab
 

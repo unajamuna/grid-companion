@@ -85,7 +85,7 @@ for (const view of ['usage', 'actions']) {
       Color, Size, Rect, Font, DrawContext, ListWidget, SFSymbol,
       DateFormatter: class { string(d) { return d.toLocaleString('en-US', this.dateFormat.includes('MMM') ? { month: 'short', day: 'numeric', hour: 'numeric' } : { hour: 'numeric', minute: '2-digit' }) } },
       Request: class {
-        constructor(u) { this.u = u.replace('https://gridcompanion.netlify.app', site).replace('https://www.caiso.com/outlook/current', `${site}/caiso`) }
+        constructor(u) { this.u = u.replace('https://grid-companion.vercel.app', site).replace('https://www.caiso.com/outlook/current', `${site}/caiso`) }
         async loadJSON() { return getJSON(this.u) }
         async loadString() { return (await fetch(this.u)).text() }
       },

@@ -36,9 +36,9 @@ npm install
 npm run dev
 ```
 
-Deployed on Netlify. `netlify.toml` proxies `/caiso/*` to CAISO, because CAISO's files don't allow cross-origin requests.
+Deployed on Vercel at https://grid-companion.vercel.app. `vercel.json` runs the build, then `scripts/build-vercel.mjs` bundles the two functions in `netlify/functions/` as Vercel functions and proxies `/caiso/*` to CAISO, because CAISO's files don't allow cross-origin requests. `netlify.toml` still works for Netlify.
 
-LADWP and SMUD data needs a free [EIA API key](https://www.eia.gov/opendata/register.php). `netlify/functions/eia.ts` (served at `/api/eia`) adds the key on the server so it never reaches the browser. Set `EIA_API_KEY` in Netlify's environment variables, and for local dev put `EIA_API_KEY=...` in a `.env` file (gitignored); `vite.config.ts` runs the same function in the dev server.
+LADWP and SMUD data needs a free [EIA API key](https://www.eia.gov/opendata/register.php). `netlify/functions/eia.ts` (served at `/api/eia`) adds the key on the server so it never reaches the browser. Set `EIA_API_KEY` in the host's environment variables (Vercel or Netlify), and for local dev put `EIA_API_KEY=...` in a `.env` file (gitignored); `vite.config.ts` runs the same function in the dev server.
 
 ## Chrome extension: a gentle pause before AI chats
 
@@ -64,4 +64,4 @@ Works in other Chromium browsers too (Edge, Brave, Arc). More detail is in [exte
 
 ## Desktop widget (Übersicht)
 
-`widgets/uebersicht/grid-companion.jsx` is a desktop widget for [Übersicht](https://tracesof.net/uebersicht/) on macOS. Copy it into Übersicht's widgets folder (menu bar icon → Open Widgets Folder) and set your ZIP at the top of the file. It refreshes every 15 minutes from `/api/summary`, a Netlify function that runs the app's own loaders and rules and returns the phase, demand, energy mix, weather and one tip per row as JSON.
+`widgets/uebersicht/grid-companion.jsx` is a desktop widget for [Übersicht](https://tracesof.net/uebersicht/) on macOS. Copy it into Übersicht's widgets folder (menu bar icon → Open Widgets Folder) and set your ZIP at the top of the file. It refreshes every 15 minutes from `/api/summary`, a server function that runs the app's own loaders and rules and returns the phase, demand, energy mix, weather and one tip per row as JSON.

@@ -7,7 +7,7 @@ import { run } from 'uebersicht'
 // ---- Settings ----
 const ZIP = '94612' // your California ZIP code
 const GRID = '' // leave empty to pick from the ZIP, or set 'CAISO', 'LADWP' or 'SMUD'
-const SITE = 'https://gridcompanion.netlify.app'
+const SITE = 'https://grid-companion.vercel.app'
 
 export const command = `curl -s --max-time 25 '${SITE}/api/summary?zip=${ZIP}${GRID ? `&grid=${GRID}` : ''}'`
 export const refreshFrequency = 15 * 60 * 1000 // 15 minutes

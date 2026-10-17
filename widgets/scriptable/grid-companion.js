@@ -12,7 +12,7 @@
 // Best sizes: usage → Medium or Large; actions → Large (Medium shows one tip per row).
 
 const DEFAULT_ZIP = '94612'
-const SITE = 'https://gridcompanion.netlify.app'
+const SITE = 'https://grid-companion.vercel.app'
 const CAISO = 'https://www.caiso.com/outlook/current'
 const REFRESH_MIN = 15
 

@@ -3,7 +3,7 @@
 
 /* exported GC */
 const GC = {
-  SITE: 'https://gridcompanion.netlify.app',
+  SITE: 'https://grid-companion.vercel.app',
   STALE_MS: 60 * 60 * 1000, // a summary older than this isn't trusted for timing
   SNOOZE_MS: 60 * 60 * 1000, // after "Continue anyway", leave that site alone for an hour
 
