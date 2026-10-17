@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { ActionsWidget } from './components/ActionsWidget'
+import { Brand } from './components/Brand'
 import { DayCard } from './components/DayCard'
 import { Landscape } from './components/Landscape'
 import { LocationBar } from './components/LocationBar'
@@ -93,7 +94,7 @@ export default function App() {
       <div className="relative min-h-screen">
         <Landscape />
         <div className="mx-auto max-w-xl px-4 py-8 sm:py-12">
-          <h1 className="px-1 text-2xl font-semibold tracking-tight text-charcoal">Grid Companion</h1>
+          <Brand className="px-1" />
           <LocationBar place={place} onPlace={setPlace} />
           <p className="mt-16 text-center text-lg text-charcoal/70">Checking the {grid.name} grid…</p>
         </div>
@@ -114,7 +115,7 @@ export default function App() {
       <Landscape />
       <div className="mx-auto max-w-xl px-4 py-8 sm:py-12">
         <header className="flex items-end justify-between gap-4 px-1 text-charcoal">
-          <h1 className="text-2xl font-semibold tracking-tight">Grid Companion</h1>
+          <Brand />
           <p className="text-right text-xs text-charcoal/70">
             {isDemo ? (
               `Sample · ${fmtTime(observedAt)}`

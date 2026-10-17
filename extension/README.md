@@ -21,4 +21,4 @@ It reads `https://gridcompanion.netlify.app/api/summary?zip=…` every 15 minute
 - `content.js`: the nudge screen, in a shadow root so chat sites' styles can't affect it.
 - `popup.*`: status, settings and a small tally.
 - `dev/`: test pages with stand-in `chrome.*` APIs (open `dev/nudge-test.html` from the dev server) and `rules.test.cjs` for the reminder rules (`node extension/dev/rules.test.cjs`). Not used by the extension.
-- Icons come from `scripts/make-extension-icons.py`.
+- Icons come from `scripts/make-brand-assets.py`, built from the logo in `brand/`.
