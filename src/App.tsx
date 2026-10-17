@@ -182,6 +182,20 @@ export default function App() {
           </section>
         )}
 
+        <a
+          href="https://github.com/unajamuna/grid-companion#chrome-extension-a-gentle-pause-before-ai-chats"
+          className="widget mt-5 flex items-center gap-3 p-4 transition hover:ring-white/25 sm:p-5"
+        >
+          <img src="/icon-192.png" alt="" width={36} height={36} className="h-9 w-9 shrink-0" />
+          <span className="min-w-0">
+            <span className="block text-sm font-semibold">Get the Chrome extension</span>
+            <span className="block text-xs text-white/55">
+              A gentle pause before AI chats when the grid is running on gas, plus small energy tips. Free, on GitHub.
+            </span>
+          </span>
+          <span className="ml-auto shrink-0 text-xs font-medium text-[#44a861]">Install ↗</span>
+        </a>
+
         <footer className="mt-8 space-y-1 text-center text-xs text-charcoal/80">
           {delayed ? (
             <p>

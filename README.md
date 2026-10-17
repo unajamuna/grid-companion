@@ -40,6 +40,24 @@ Deployed on Netlify. `netlify.toml` proxies `/caiso/*` to CAISO, because CAISO's
 
 LADWP and SMUD data needs a free [EIA API key](https://www.eia.gov/opendata/register.php). `netlify/functions/eia.ts` (served at `/api/eia`) adds the key on the server so it never reaches the browser. Set `EIA_API_KEY` in Netlify's environment variables, and for local dev put `EIA_API_KEY=...` in a `.env` file (gitignored); `vite.config.ts` runs the same function in the dev server.
 
+## Chrome extension: a gentle pause before AI chats
+
+When California's grid is running on gas or near its daily peak, the extension shows a short pause on ChatGPT, Claude, Gemini, Perplexity and Copilot: save the task for cleaner hours (with a reminder), switch to a smaller model, or continue anyway. It can also send small energy tips as desktop notifications. You can always override it, and it only ever contacts this site.
+
+### Install it (about 2 minutes)
+
+It isn't in the Chrome Web Store yet, so it installs as a "developer" extension:
+
+1. **[Download the extension](https://github.com/unajamuna/grid-companion/releases/latest/download/grid-companion-extension.zip)** and double-click the zip to unzip it. You'll get a folder called **grid-companion-extension**. Move it somewhere you'll keep it, like Documents, since Chrome runs it from that folder.
+2. In Chrome, go to `chrome://extensions`.
+3. Turn on **Developer mode** (top right).
+4. Click **Load unpacked** and choose the **grid-companion-extension** folder.
+5. Pin it from the puzzle-piece menu, click the leaf icon, and enter your California ZIP code.
+
+Chrome may remind you that a developer-mode extension is on. That's expected. To update later, download the new zip, replace the folder, and click the reload arrow on the extension in `chrome://extensions`.
+
+Works in other Chromium browsers too (Edge, Brave, Arc). More detail is in [extension/README.md](extension/README.md).
+
 ## Desktop widget (Übersicht)
 
 `widgets/uebersicht/grid-companion.jsx` is a desktop widget for [Übersicht](https://tracesof.net/uebersicht/) on macOS. Copy it into Übersicht's widgets folder (menu bar icon → Open Widgets Folder) and set your ZIP at the top of the file. It refreshes every 15 minutes from `/api/summary`, a Netlify function that runs the app's own loaders and rules and returns the phase, demand, energy mix, weather and one tip per row as JSON.
