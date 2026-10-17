@@ -1,10 +1,14 @@
 # Grid Companion widget for iPhone (and Mac)
 
-A home-screen and Lock Screen widget built with [Scriptable](https://scriptable.app) (free on the App Store). It shows what California's grid is doing and small ways to adapt, from the same summary the website uses.
+Home-screen and Lock Screen widgets built with [Scriptable](https://scriptable.app) (free on the App Store). They are copies of the website's first two widgets, from the same data the website uses. Choose which one with the widget's **Parameter**:
 
-- **Small:** phase, demand with its coloured level (red near the day's peak, green when low), an energy-mix bar, and the top tip.
-- **Medium:** the same plus today's bar chart, and three tips.
-- **Large:** everything: today's stacked chart with the record line, the mix, the mood line, four tips and the weather.
+- **`usage`** (the default): the energy usage chart. Phase, grid demand with its coloured level (red near the day's peak, green when low), today's hourly bars stacked by source with the record line, and the source tiles with their shares.
+  - **Medium:** demand and chart on the left, top four sources on the right.
+  - **Large:** the full widget: chart, freshness and all five source tiles.
+  - **Small:** demand and a mini chart.
+- **`actions`**: "What you can do". The mood line and four rows of tips with icons; timed tips show their time in green.
+  - **Large:** all four rows, four tips each, like the website.
+  - **Medium:** the top tip from each row. **Small:** a short list.
 - **Lock Screen** (rectangular and inline): phase, demand and the top tip.
 
 It refreshes about every 15 minutes (iOS decides exactly when), keeps the last good reading if a refresh fails, and opens the website when tapped.
@@ -19,7 +23,11 @@ It refreshes about every 15 minutes (iOS decides exactly when), keeps the last g
 4. Add the widget: long-press the Home Screen → **Edit** → **Add Widget** → **Scriptable** → pick a size → **Add Widget**.
 5. Long-press the new widget → **Edit Widget**:
    - **Script:** Grid Companion
-   - **Parameter:** your ZIP code, e.g. `94612`. Optionally add a grid: `90012 CAISO`, `90012 LADWP` or `95814 SMUD`.
+   - **Parameter:** your ZIP code and which widget, e.g. `94612 usage` or `94612 actions`. Optionally add a grid: `90012 LADWP usage` or `95814 SMUD actions`.
+
+Add the widget twice (a Medium or Large `usage` and a Large `actions`) to get both, or stack them in a Smart Stack.
+
+**Updating:** to get a new version, copy the script again and paste it over the old one in Scriptable (open it, select all, paste, **Done**). The widgets keep their settings.
 
 For the Lock Screen: long-press the Lock Screen → **Customize** → **Lock Screen** → tap the widget area → **Scriptable**, then set the script and parameter the same way.
 
@@ -35,10 +43,11 @@ Your Mac and iPhone need the same Apple Account, and the iPhone should be nearby
 
 ## Development
 
-`dev/preview.mjs` runs the script in Node with a stand-in for Scriptable's API, for every widget size, and writes `dev/preview.html`, which draws each layout at its real size:
+`dev/preview.mjs` runs the script in Node with a stand-in for Scriptable's API, for every widget size and both views, and writes `dev/preview.html`, which draws each layout at its real size:
 
 ```bash
-node widgets/scriptable/dev/preview.mjs 94612   # or 90012, 95814
+node widgets/scriptable/dev/preview.mjs 94612          # or 90012, 95814
+node widgets/scriptable/dev/preview.mjs 94612 http://localhost:5174 --old   # check fallbacks for an older live site
 ```
 
 Open `/widgets/scriptable/dev/preview.html` on the dev server to look at it.

@@ -73,6 +73,8 @@ export default async function handler(req: Request): Promise<Response> {
       goal: goalOf(a),
     }
   }
+  // All four picks per row, as the website's "What you can do" widget shows them.
+  const rows = ROWS.map((row) => ({ id: row.id, label: row.label, tips: pickRow(row.id, ctx).map((a) => toTip(a, row)) }))
   const tips = ROWS.flatMap((row) => {
     const a = pickRow(row.id, ctx)[0]
     return a ? [toTip(a, row)] : []
@@ -121,6 +123,7 @@ export default async function handler(req: Request): Promise<Response> {
         summary: weather.nowSummary, isDay: weather.isDay,
       },
       tips,
+      rows,
       quickTips,
       project: { label: project.label, impact: project.impact, detail: project.detail },
       generatedAt: now.toISOString(),

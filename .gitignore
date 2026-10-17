@@ -27,3 +27,4 @@ dist-ssr
 .env
 releases/
 widgets/scriptable/dev/preview*.html
+.netlify/
