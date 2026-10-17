@@ -114,7 +114,7 @@ export default function App() {
     <div className="relative min-h-screen">
       <Landscape />
       <div className="mx-auto max-w-xl px-4 py-8 sm:py-12">
-        <header className="flex items-end justify-between gap-4 px-1 text-charcoal">
+        <header className="flex items-center justify-between gap-4 px-1 text-charcoal">
           <Brand />
           <p className="text-right text-xs text-charcoal/70">
             {isDemo ? (
