@@ -6,16 +6,19 @@ import { PHASE_STYLE } from './PhaseIcon'
 
 const hourLabel = (h: number) => (h === 0 ? '12 AM' : h === 12 ? '12 PM' : h < 12 ? `${h} AM` : `${h - 12} PM`)
 
-// Where the reading sits in the day's range, in plain words.
-function demandLevel(now: number, today: HourUsage[], recordMW: number | undefined, delayed: boolean) {
+// Where the reading sits in the day's range, in plain words, with a colour to match:
+// red near the day's peak, green near its low, the usual white in between.
+// (The record shows as the dashed line on the chart, so it isn't repeated here.)
+const LEVEL_COLOR = { peak: '#e5534b', low: '#44a861', moderate: undefined }
+
+function demandLevel(now: number, today: HourUsage[], delayed: boolean) {
   const values = today.map((h) => h.demandMW)
   const [min, max] = [Math.min(...values, now), Math.max(...values, now)]
   const pos = max > min ? (now - min) / (max - min) : 0.5
   const day = delayed ? 'that day' : 'today'
-  const level = pos >= 0.85 ? `Near ${day}’s peak` : pos <= 0.25 ? `Low for ${day}` : `Moderate for ${day}`
-  if (!recordMW) return level
-  const gw = Math.round(recordMW / 1000)
-  return `${level} · ${now < recordMW * 0.75 ? 'well under' : 'close to'} the ${gw} GW record`
+  if (pos >= 0.85) return { tone: 'peak' as const, text: `Near ${day}’s peak` }
+  if (pos <= 0.25) return { tone: 'low' as const, text: `Low for ${day}` }
+  return { tone: 'moderate' as const, text: `Moderate for ${day}` }
 }
 
 type Props = {
@@ -57,9 +60,15 @@ export function UsageWidget({ today, snapshot, phase, isDemo, delayed = false, r
           <span className="ml-1 text-lg font-medium text-white/60 sm:text-2xl">GW</span>
         </p>
         <p className="mt-2 text-xs text-white/55">{delayed ? `Grid demand at ${fmtDayTime(observedAt)}` : 'Grid demand now'}</p>
-        {snapshot.demandMW != null && (
-          <p className="mt-0.5 text-xs text-white/85">{demandLevel(snapshot.demandMW, today, recordMW, delayed)}</p>
-        )}
+        {snapshot.demandMW != null && (() => {
+          const level = demandLevel(snapshot.demandMW, today, delayed)
+          return (
+            <p className={`mt-0.5 text-xs ${level.tone === 'moderate' ? 'text-white/85' : 'font-medium'}`}
+              style={{ color: LEVEL_COLOR[level.tone] }}>
+              {level.text}
+            </p>
+          )
+        })()}
 
         <div className="relative mt-4 h-28 sm:h-32">
           <div className="absolute inset-x-0 bottom-0 border-t border-white/15" />
