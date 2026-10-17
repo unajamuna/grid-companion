@@ -15,6 +15,43 @@ async function refresh() {
   }
 }
 
+// ---- Micro-tip reminders ----
+async function sendTip(kind, summary, s) {
+  const tip = GC.pickTip(summary, s.recentTips)
+  if (!tip) return false
+  const { title, message } = GC.tipNotice(tip, summary, kind)
+  chrome.notifications.create(`tip:${tip.id}:${Date.now()}`, {
+    type: 'basic',
+    iconUrl: 'icons/icon128.png',
+    title,
+    message,
+    buttons: [{ title: 'Done it' }, { title: 'No more today' }],
+    priority: 0,
+  })
+  const now = new Date()
+  const stretch = summary.phase?.id === 'higher-carbon' ? 'dirty' : summary.busy ? 'peak' : null
+  await chrome.storage.local.set({
+    lastTipAt: now.getTime(),
+    recentTips: [tip.id, ...s.recentTips].slice(0, 8),
+    // Remember the stretch we alerted for, so each one alerts once.
+    ...(kind === 'alert' && stretch ? { lastAlert: `${stretch}:${now.toDateString()}` } : {}),
+  })
+  return true
+}
+
+async function maybeTip() {
+  const { summary } = await chrome.storage.local.get('summary')
+  const s = await GC.settings()
+  const kind = GC.tipDue(summary, s)
+  if (kind) await sendTip(kind, summary, s)
+}
+
+const endOfToday = () => {
+  const d = new Date()
+  d.setHours(23, 59, 59, 999)
+  return d.getTime()
+}
+
 chrome.runtime.onInstalled.addListener(async () => {
   const current = await chrome.storage.local.get(null)
   const fill = {}
@@ -27,7 +64,10 @@ chrome.runtime.onInstalled.addListener(async () => {
 chrome.runtime.onStartup.addListener(refresh)
 
 chrome.alarms.onAlarm.addListener(async (alarm) => {
-  if (alarm.name === 'refresh') return refresh()
+  if (alarm.name === 'refresh') {
+    await refresh()
+    return maybeTip()
+  }
   if (alarm.name.startsWith('remind:')) {
     const { reminders = {} } = await chrome.storage.local.get('reminders')
     const r = reminders[alarm.name]
@@ -42,7 +82,24 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
   }
 })
 
+chrome.notifications.onButtonClicked.addListener(async (id, button) => {
+  if (!id.startsWith('tip:')) return
+  if (button === 0) {
+    const { stats = GC.defaults.stats } = await chrome.storage.local.get('stats')
+    stats.tipsDone = (stats.tipsDone ?? 0) + 1
+    await chrome.storage.local.set({ stats })
+  } else {
+    await chrome.storage.local.set({ tipsPausedUntil: endOfToday() })
+  }
+  chrome.notifications.clear(id)
+})
+
 chrome.notifications.onClicked.addListener(async (id) => {
+  if (id.startsWith('tip:')) {
+    chrome.tabs.create({ url: GC.SITE })
+    chrome.notifications.clear(id)
+    return
+  }
   const { reminders = {} } = await chrome.storage.local.get('reminders')
   const r = reminders[id]
   if (r) chrome.tabs.create({ url: r.url })
@@ -62,6 +119,11 @@ chrome.runtime.onMessage.addListener((msg, sender, reply) => {
       reply({ ok: true })
     } else if (msg.type === 'closeTab' && sender.tab?.id) {
       chrome.tabs.remove(sender.tab.id)
+    } else if (msg.type === 'tipNow') {
+      // "Send one now" from the popup: skips the schedule and quiet hours.
+      const { summary } = await chrome.storage.local.get('summary')
+      const ok = summary && !summary.error ? await sendTip('regular', summary, await GC.settings()) : false
+      reply({ ok })
     } else if (msg.type === 'refresh') {
       await refresh()
       reply({ ok: true })

@@ -32,6 +32,28 @@
   </section>
 
   <section class="card">
+    <h2>Micro-tip reminders</h2>
+    <label class="row">
+      <span>Send small energy tips as notifications</span>
+      <input type="checkbox" id="tipsEnabled">
+    </label>
+    <label class="row">
+      <span>How often</span>
+      <select id="tipsEvery">
+        <option value="60">Every hour</option>
+        <option value="120">Every 2 hours</option>
+        <option value="180">Every 3 hours</option>
+        <option value="0">Only at busy times</option>
+      </select>
+    </label>
+    <p class="muted small">Quiet from 9 PM to 8 AM. Each one has <em>Done it</em> and <em>No more today</em> buttons.</p>
+    <div class="row">
+      <span id="tipNote" class="muted small"></span>
+      <button id="tipNow" class="small">Send one now</button>
+    </div>
+  </section>
+
+  <section class="card">
     <form id="zipForm" class="row">
       <label for="zip">Your ZIP</label>
       <input id="zip" inputmode="numeric" maxlength="5" autocomplete="postal-code">
@@ -46,6 +68,7 @@
       <div><strong id="deferred">0</strong><span>saved for cleaner hours</span></div>
       <div><strong id="smaller">0</strong><span>switched to a smaller model</span></div>
       <div><strong id="continued">0</strong><span>went ahead anyway</span></div>
+      <div><strong id="tipsDone">0</strong><span>micro-tips done</span></div>
     </div>
   </section>
 

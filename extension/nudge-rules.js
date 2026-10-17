@@ -13,7 +13,16 @@ const GC = {
     alsoCleanerLater: false, // also nudge when a much cleaner time is coming soon
     pausedUntil: 0, // "pause for today"
     snoozes: {}, // host -> timestamp
-    stats: { shown: 0, deferred: 0, smaller: 0, continued: 0, since: 0 },
+    stats: { shown: 0, deferred: 0, smaller: 0, continued: 0, since: 0, tipsDone: 0 },
+    // Micro-tip reminders
+    tipsEnabled: true,
+    tipsEvery: 120, // minutes between reminders; 0 = only when the grid turns busy or dirty
+    quietFrom: 21, // no reminders from 9 PM…
+    quietTo: 8, // …until 8 AM
+    tipsPausedUntil: 0, // "No more today"
+    lastTipAt: 0,
+    lastAlert: null, // the busy/dirty stretch we last sent a heads-up for
+    recentTips: [], // ids, newest first, to avoid repeats
   },
 
   async settings() {
@@ -31,6 +40,43 @@ const GC = {
     if (summary.busy) return 'peak'
     if (settings.alsoCleanerLater && id === 'cleaner-later') return 'later'
     return null
+  },
+
+  // Is a reminder due now? 'alert' when the grid just turned busy or dirty (once per
+  // stretch), 'regular' on the chosen schedule, or null.
+  tipDue(summary, s, now = new Date()) {
+    if (!s.tipsEnabled || +now < s.tipsPausedUntil) return null
+    if (!summary || summary.error) return null
+    const h = now.getHours()
+    if (s.quietFrom > s.quietTo ? h >= s.quietFrom || h < s.quietTo : h >= s.quietFrom && h < s.quietTo) return null
+    const live = !summary.grid?.delayed && +now - Date.parse(summary.generatedAt) < GC.STALE_MS
+    const stretch = live ? (summary.phase?.id === 'higher-carbon' ? 'dirty' : summary.busy ? 'peak' : null) : null
+    // A stretch is identified by its kind and the day, so each evening peak alerts once.
+    const key = stretch && `${stretch}:${now.toDateString()}`
+    if (key && key !== s.lastAlert) return 'alert'
+    if (s.tipsEvery > 0 && +now - s.lastTipAt >= s.tipsEvery * 60_000) return 'regular'
+    return null
+  },
+
+  // The next quick tip, skipping ones shown recently. Timed tips need live data.
+  pickTip(summary, recent = []) {
+    const pool = (summary.quickTips ?? summary.tips ?? []).filter((t) => !(t.timed && summary.grid?.delayed))
+    return pool.find((t) => !recent.includes(t.id)) ?? pool[0] ?? null
+  },
+
+  // Notification text. Chrome shows a title and about two lines of message.
+  tipNotice(tip, summary, kind) {
+    const lead = kind === 'alert'
+      ? summary.phase?.id === 'higher-carbon' ? 'The grid just switched to gas' : 'The evening peak is here'
+      : summary.grid?.delayed
+        ? 'Everyday energy tip'
+        : summary.busy
+          ? 'Busy grid'
+          : ({ clean: 'Clean power now', 'cleaner-later': 'Cleaner power later', 'higher-carbon': 'Grid on gas' })[summary.phase?.id] ?? 'Quick energy tip'
+    return {
+      title: `${lead} · ${tip.label}`,
+      message: tip.headline ? `${tip.headline} ${tip.detail}` : tip.detail,
+    }
   },
 
   time(iso) {

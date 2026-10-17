@@ -56,12 +56,11 @@ export default async function handler(req: Request): Promise<Response> {
   const ctx = { phase, busy, now, weather }
 
   const mix = snapshot.mix ? groupMix(snapshot.mix) : null
-  const tips = ROWS.map((row) => {
-    const a = pickRow(row.id, ctx)[0]
-    if (!a) return null
+  type Picked = ReturnType<typeof pickRow>[number]
+  const toTip = (a: Picked, row: string) => {
     const headline = typeof a.headline === 'function' ? a.headline(ctx) : a.headline
     return {
-      row: row.label,
+      row,
       id: a.id,
       label: a.label,
       when: a.when(ctx),
@@ -71,7 +70,21 @@ export default async function handler(req: Request): Promise<Response> {
       effort: effortOf(a),
       goal: goalOf(a),
     }
-  }).filter(Boolean)
+  }
+  const tips = ROWS.flatMap((row) => {
+    const a = pickRow(row.id, ctx)[0]
+    return a ? [toTip(a, row.label)] : []
+  })
+  // A wider pool of seconds-long tips for desktop reminders: the extension rotates
+  // through these so reminders don't repeat. Built from a few shuffles of each row.
+  const seen = new Set<string>()
+  const quickTips = [0, 1, 2, 3].flatMap((shuffle) =>
+    ROWS.flatMap((row) =>
+      pickRow(row.id, ctx, shuffle)
+        .filter((a) => effortOf(a) === 'seconds' && !seen.has(a.id) && seen.add(a.id))
+        .map((a) => toTip(a, row.label)),
+    ),
+  ).slice(0, 12)
   const project = pickProject(ctx)
 
   return json(
@@ -98,6 +111,7 @@ export default async function handler(req: Request): Promise<Response> {
         summary: weather.nowSummary, isDay: weather.isDay,
       },
       tips,
+      quickTips,
       project: { label: project.label, impact: project.impact, detail: project.detail },
       generatedAt: now.toISOString(),
     },

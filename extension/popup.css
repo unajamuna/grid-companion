@@ -31,3 +31,7 @@ button.small:hover { background: #3a3a3c; }
 .foot { margin: 12px 0 0; text-align: center; }
 a { color: #7fd67f; text-decoration: none; }
 a:hover { text-decoration: underline; }
+select { max-width: 150px; padding: 5px 6px; border: 0; border-radius: 10px; background: #2c2c2e; color: #fff; font: inherit; }
+.small { font-size: 11px; }
+p.small { margin: 8px 0 0; }
+.stats { grid-template-columns: repeat(2, 1fr); }

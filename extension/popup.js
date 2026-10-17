@@ -38,6 +38,11 @@ async function renderSettings() {
   $('deferred').textContent = st.deferred ?? 0
   $('smaller').textContent = st.smaller ?? 0
   $('continued').textContent = st.continued ?? 0
+  $('tipsDone').textContent = st.tipsDone ?? 0
+  $('tipsEnabled').checked = s.tipsEnabled
+  $('tipsEvery').value = String(s.tipsEvery)
+  $('tipsEvery').disabled = !s.tipsEnabled
+  $('tipNote').textContent = Date.now() < s.tipsPausedUntil ? 'Paused until tomorrow' : ''
 }
 
 $('enabled').addEventListener('change', async (e) => {
@@ -51,6 +56,15 @@ $('pause').addEventListener('click', async () => {
   end.setHours(23, 59, 59, 999)
   await chrome.storage.local.set({ pausedUntil: Date.now() < s.pausedUntil ? 0 : end.getTime() })
   renderSettings()
+})
+$('tipsEnabled').addEventListener('change', async (e) => {
+  await chrome.storage.local.set({ tipsEnabled: e.target.checked, tipsPausedUntil: 0 })
+  renderSettings()
+})
+$('tipsEvery').addEventListener('change', (e) => chrome.storage.local.set({ tipsEvery: Number(e.target.value) }))
+$('tipNow').addEventListener('click', async () => {
+  const r = await chrome.runtime.sendMessage({ type: 'tipNow' })
+  $('tipNote').textContent = r?.ok ? 'Sent. Check your notifications.' : 'No grid data yet. Try again in a minute.'
 })
 $('zipForm').addEventListener('submit', async (e) => {
   e.preventDefault()
