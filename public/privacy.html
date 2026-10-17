@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Privacy · Grid Companion</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <style>
+    :root { color-scheme: dark; }
+    body { margin: 0; background: #121214; color: rgba(255,255,255,.85); font: 16px/1.6 -apple-system, 'SF Pro Text', Inter, system-ui, sans-serif; }
+    main { max-width: 680px; margin: 0 auto; padding: 48px 20px 64px; }
+    h1 { margin: 16px 0 4px; font-size: 28px; color: #fff; letter-spacing: -0.01em; }
+    h2 { margin: 32px 0 8px; font-size: 18px; color: #fff; }
+    p, li { color: rgba(255,255,255,.78); }
+    ul { padding-left: 20px; }
+    .muted { color: rgba(255,255,255,.5); font-size: 14px; }
+    a { color: #44a861; }
+    code { background: #2c2c2e; padding: 1px 6px; border-radius: 6px; font-size: 14px; }
+  </style>
+</head>
+<body>
+<main>
+  <a href="/"><img src="/logo-grid-white.png" alt="Grid Companion" height="22"></a>
+  <h1>Privacy policy</h1>
+  <p class="muted">Covers the Grid Companion website and the Grid Companion: AI Nudge Chrome extension. Last updated October 16, 2026.</p>
+
+  <p>Grid Companion is a personal project. It has no accounts, no ads and no analytics, and it doesn’t sell or share your information.</p>
+
+  <h2>The Chrome extension</h2>
+  <p><strong>What stays on your computer.</strong> The extension keeps its settings in Chrome’s local storage on your device: your ZIP code, whether pauses and tips are on, how often tips appear, small counters (like how many tasks you saved for later), and, if you choose “Save it for later,” the address of that chat page so the reminder can bring you back. None of this leaves your computer except your ZIP code, as described next.</p>
+  <p><strong>What it sends.</strong> About every 15 minutes, the extension asks <code>gridcompanion.netlify.app</code> for the current grid conditions near your ZIP code. That request includes your ZIP code and nothing else about you.</p>
+  <p><strong>On AI chat sites</strong> (ChatGPT, Claude, Gemini, Perplexity, Copilot), the extension only checks which site you’re on, so it can show the pause. It does not read, store or send what you type or what the AI replies.</p>
+  <p><strong>Notifications</strong> are created by the extension on your computer. Nothing is sent to a notification service.</p>
+
+  <h2>The website</h2>
+  <p>The website remembers your ZIP code and grid choice in your browser’s local storage. To show local weather and pick the right grid, your browser looks up your ZIP code with <a href="https://www.zippopotam.us/">Zippopotam.us</a> and fetches weather from <a href="https://open-meteo.com/">Open-Meteo</a> using that area’s approximate coordinates. Grid data comes from the California ISO and the U.S. Energy Information Administration.</p>
+
+  <h2>Behind the scenes</h2>
+  <p>To answer those requests, Grid Companion’s server looks up your ZIP code’s area with Zippopotam.us and its weather with Open-Meteo, and fetches public grid data. The site is hosted on <a href="https://www.netlify.com/privacy/">Netlify</a>, which, like most hosts, may keep standard request logs (such as IP address and the page requested) for a short time for security and reliability. Grid Companion doesn’t keep its own logs of your requests.</p>
+
+  <h2>Your choices</h2>
+  <ul>
+    <li>Turn pauses or tips off, or pause them for the day, from the extension’s toolbar popup.</li>
+    <li>Remove the extension from <code>chrome://extensions</code> to delete everything it stored.</li>
+    <li>Clear this site’s data in your browser settings to remove what the website remembers.</li>
+  </ul>
+
+  <h2>Questions</h2>
+  <p>Open an issue on <a href="https://github.com/unajamuna/grid-companion/issues">GitHub</a>.</p>
+</main>
+</body>
+</html>

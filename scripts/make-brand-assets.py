@@ -29,4 +29,10 @@ word_white.resize((round(word_white.width * h / word_white.height), h), Image.LA
 # Chrome extension icons.
 for size in (16, 32, 48, 128):
     icon.resize((size, size), Image.LANCZOS).save(f'extension/icons/icon{size}.png', optimize=True)
+
+# Chrome Web Store icon: 96 px of artwork centred on a 128 px transparent square.
+art = leaf.resize((round(leaf.width * 96 / max(leaf.size)), round(leaf.height * 96 / max(leaf.size))), Image.LANCZOS)
+tile = Image.new('RGBA', (128, 128), (0, 0, 0, 0))
+tile.alpha_composite(art, ((128 - art.width) // 2, (128 - art.height) // 2))
+tile.save('store/images/store-icon-128.png', optimize=True)
 print('ok')

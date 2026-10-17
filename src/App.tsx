@@ -217,6 +217,8 @@ export default function App() {
             ) : (
               <a className="underline" href="?demo">View the sample day</a>
             )}
+            {' · '}
+            <a className="underline" href="/privacy.html">Privacy</a>
           </p>
         </footer>
       </div>
