@@ -17,6 +17,7 @@ import { loadWeather } from '../../src/data/weather'
 import type { GridId } from '../../src/location'
 import { GRID_INFO, gridFor, lookupZip } from '../../src/location'
 import { effortOf, goalOf, mood, pickProject, pickRow, ROWS } from '../../src/logic/actions'
+import { demandLevel } from '../../src/logic/demand'
 import { classify } from '../../src/logic/phase'
 import { GROUP_ORDER, GROUPS, groupMix } from '../../src/sources'
 
@@ -57,10 +58,11 @@ export default async function handler(req: Request): Promise<Response> {
 
   const mix = snapshot.mix ? groupMix(snapshot.mix) : null
   type Picked = ReturnType<typeof pickRow>[number]
-  const toTip = (a: Picked, row: string) => {
+  const toTip = (a: Picked, row: (typeof ROWS)[number]) => {
     const headline = typeof a.headline === 'function' ? a.headline(ctx) : a.headline
     return {
-      row,
+      row: row.label,
+      rowId: row.id, // short and stable, for widgets with little room
       id: a.id,
       label: a.label,
       when: a.when(ctx),
@@ -73,7 +75,7 @@ export default async function handler(req: Request): Promise<Response> {
   }
   const tips = ROWS.flatMap((row) => {
     const a = pickRow(row.id, ctx)[0]
-    return a ? [toTip(a, row.label)] : []
+    return a ? [toTip(a, row)] : []
   })
   // A wider pool of seconds-long tips for desktop reminders: the extension rotates
   // through these so reminders don't repeat. Built from a few shuffles of each row.
@@ -82,7 +84,7 @@ export default async function handler(req: Request): Promise<Response> {
     ROWS.flatMap((row) =>
       pickRow(row.id, ctx, shuffle)
         .filter((a) => effortOf(a) === 'seconds' && !seen.has(a.id) && seen.add(a.id))
-        .map((a) => toTip(a, row.label)),
+        .map((a) => toTip(a, row)),
     ),
   ).slice(0, 12)
   const project = pickProject(ctx)
@@ -100,6 +102,14 @@ export default async function handler(req: Request): Promise<Response> {
       },
       mood: mood(ctx),
       demandGW: snapshot.demandMW == null ? null : Math.round(snapshot.demandMW / 100) / 10,
+      demandLevel: snapshot.demandMW == null ? null : demandLevel(snapshot.demandMW, data.today, delayed),
+      // Today's hourly bars for widget charts: demand in GW and group shares (null = forecast).
+      hours: data.today.map((h) => ({
+        at: h.at,
+        gw: Math.round(h.demandMW / 100) / 10,
+        mix: h.mix ? Object.fromEntries(GROUP_ORDER.map((g) => [g, Math.round(groupMix(h.mix!)[g] * 100) / 100])) : null,
+      })),
+      recordGW: data.recordMW ? Math.round(data.recordMW / 1000) : null,
       busy,
       carbonIntensity: snapshot.carbonIntensity,
       mix: mix

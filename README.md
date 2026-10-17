@@ -58,6 +58,10 @@ Chrome may remind you that a developer-mode extension is on. That's expected. To
 
 Works in other Chromium browsers too (Edge, Brave, Arc). More detail is in [extension/README.md](extension/README.md).
 
+## iPhone and Mac widget (Scriptable)
+
+`widgets/scriptable/grid-companion.js` is a home-screen and Lock Screen widget for [Scriptable](https://scriptable.app) on iPhone, which can also appear on a Mac desktop through "Use iPhone widgets." Setup steps are in [widgets/scriptable/README.md](widgets/scriptable/README.md).
+
 ## Desktop widget (Übersicht)
 
 `widgets/uebersicht/grid-companion.jsx` is a desktop widget for [Übersicht](https://tracesof.net/uebersicht/) on macOS. Copy it into Übersicht's widgets folder (menu bar icon → Open Widgets Folder) and set your ZIP at the top of the file. It refreshes every 15 minutes from `/api/summary`, a Netlify function that runs the app's own loaders and rules and returns the phase, demand, energy mix, weather and one tip per row as JSON.

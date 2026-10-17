@@ -16,7 +16,7 @@ export const refreshFrequency = 15 * 60 * 1000 // 15 minutes
 export const className = `
   top: 28px;
   right: 28px;
-  width: 300px;
+  width: 310px;
   padding: 16px;
   box-sizing: border-box;
   border-radius: 22px;
@@ -30,25 +30,51 @@ export const className = `
 `
 
 // Same colours as the website.
+const GREEN = '#44a861'
 const PHASE = {
-  clean: { color: '#44a861', mark: '●' },
+  clean: { color: GREEN, mark: '●' },
   'cleaner-later': { color: '#4f8ff7', mark: '◷' },
   mixed: { color: '#f2c14e', mark: '◌' },
   'higher-carbon': { color: '#e5534b', mark: '▲' },
   unavailable: { color: '#aeaeb2', mark: '?' },
 }
-const GREEN = '#44a861'
+const LEVEL = { peak: '#e5534b', low: GREEN, moderate: 'rgba(255,255,255,0.85)' }
+const GROUP_COLOR = { solar: '#f2c14e', water: '#4f8ff7', nuclear: '#a78bfa', batteries: GREEN, fossil: '#e5534b' }
+const STACK = ['solar', 'water', 'nuclear', 'batteries', 'fossil'] // clean at the base, fossil on top
+const ROW = { home: 'House', tech: 'Tech', save: 'Habits', unwind: 'Unwind' }
 const dim = (a) => `rgba(255,255,255,${a})`
 
 const time = (iso) => new Date(iso).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
-const dayTime = (iso) =>
-  new Date(iso).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric' })
+const dayTime = (iso) => new Date(iso).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric' })
 
 const s = {
   row: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
   pill: { display: 'inline-flex', alignItems: 'center', gap: 6, padding: '3px 10px 3px 8px', borderRadius: 999, background: dim(0.12), fontWeight: 500 },
   small: { fontSize: 11, color: dim(0.55) },
   label: { fontSize: 10, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: dim(0.45) },
+}
+
+// Today's hourly demand, stacked by source like the website's chart. Grey = forecast.
+function Bars({ hours, recordGW }) {
+  const top = Math.max(recordGW ? recordGW * 1.15 : 0, ...hours.map((h) => h.gw * 1.1))
+  return (
+    <div style={{ position: 'relative', height: 56, marginTop: 12 }}>
+      {recordGW && (
+        <div style={{ position: 'absolute', left: 0, right: 0, bottom: `${(recordGW / top) * 100}%`, borderTop: `1px dashed ${dim(0.35)}` }}>
+          <span style={{ position: 'absolute', right: 0, bottom: 2, fontSize: 9, color: dim(0.5) }}>Record {recordGW} GW</span>
+        </div>
+      )}
+      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'flex-end', gap: 2 }}>
+        {hours.map((h) => (
+          <div key={h.at} style={{ flex: 1, height: `${(h.gw / top) * 100}%`, display: 'flex', flexDirection: 'column-reverse', borderRadius: '2px 2px 0 0', overflow: 'hidden' }}>
+            {h.mix
+              ? STACK.map((g) => <div key={g} style={{ height: `${h.mix[g] * 100}%`, background: GROUP_COLOR[g] }} />)
+              : <div style={{ height: '100%', background: dim(0.2) }} />}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
 }
 
 export const render = ({ output, error }) => {
@@ -86,38 +112,39 @@ export const render = ({ output, error }) => {
         </span>
       </div>
 
-      {/* Demand and mix */}
+      {/* Demand, its level, and today's bars */}
       <div style={{ marginTop: 10, display: 'flex', alignItems: 'baseline', gap: 6 }}>
         <span style={{ fontSize: 34, fontWeight: 600, letterSpacing: '-0.02em', lineHeight: 1 }}>{d.demandGW ?? '—'}</span>
         <span style={{ fontSize: 16, color: dim(0.6) }}>GW</span>
         <span style={{ ...s.small, marginLeft: 'auto' }}>{d.grid.label} grid demand</span>
       </div>
+      {d.demandLevel && (
+        <div style={{ marginTop: 3, fontSize: 11, fontWeight: d.demandLevel.tone === 'moderate' ? 400 : 600, color: LEVEL[d.demandLevel.tone] }}>
+          {d.demandLevel.text}
+        </div>
+      )}
+      {d.hours?.length > 1 && <Bars hours={d.hours} recordGW={d.recordGW} />}
+
+      {/* Mix right now */}
       {d.mix && (
-        <div style={{ marginTop: 10 }}>
-          <div style={{ display: 'flex', height: 8, borderRadius: 4, overflow: 'hidden' }}>
-            {d.mix.map((m) => (
-              <div key={m.id} style={{ width: `${m.share * 100}%`, background: m.color }} />
-            ))}
-          </div>
-          <div style={{ marginTop: 6, display: 'flex', flexWrap: 'wrap', gap: '2px 10px' }}>
-            {d.mix.filter((m) => m.share >= 0.05).map((m) => (
-              <span key={m.id} style={{ ...s.small, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                <span style={{ width: 6, height: 6, borderRadius: 3, background: m.color }} />
-                {Math.round(m.share * 100)}% {m.label}
-              </span>
-            ))}
-          </div>
+        <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: '2px 10px' }}>
+          {d.mix.filter((m) => m.share >= 0.05).map((m) => (
+            <span key={m.id} style={{ ...s.small, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+              <span style={{ width: 6, height: 6, borderRadius: 3, background: m.color }} />
+              {Math.round(m.share * 100)}% {m.label}
+            </span>
+          ))}
         </div>
       )}
 
       {/* Tips */}
-      <div style={{ marginTop: 14, color: dim(0.75) }}>{d.mood}</div>
-      <div style={{ marginTop: 8 }}>
+      <div style={{ marginTop: 12, color: dim(0.75) }}>{d.mood}</div>
+      <div style={{ marginTop: 6 }}>
         {d.tips.map((t) => (
           <div key={t.id} style={{ ...s.row, padding: '6px 0', borderTop: `1px solid ${dim(0.08)}` }} title={t.detail}>
             <span style={{ display: 'flex', alignItems: 'baseline', gap: 8, minWidth: 0 }}>
-              <span style={{ ...s.label, width: 44, flexShrink: 0 }}>{t.row}</span>
-              <span style={{ fontWeight: 500, color: dim(0.9) }}>{t.label}</span>
+              <span style={{ ...s.label, width: 46, flexShrink: 0 }}>{ROW[t.rowId] ?? t.row}</span>
+              <span style={{ fontWeight: 500, color: dim(0.9), whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.label}</span>
             </span>
             <span style={{ fontSize: 11, flexShrink: 0, color: t.timed ? GREEN : dim(0.45) }}>{t.when}</span>
           </div>
@@ -125,7 +152,7 @@ export const render = ({ output, error }) => {
       </div>
 
       {/* Weather and link */}
-      <div style={{ ...s.row, marginTop: 8, paddingTop: 8, borderTop: `1px solid ${dim(0.08)}` }}>
+      <div style={{ ...s.row, marginTop: 6, paddingTop: 8, borderTop: `1px solid ${dim(0.08)}` }}>
         <span style={s.small}>
           {d.weather
             ? `${d.weather.place} ${d.weather.nowF}° · ${d.weather.summary} · H ${d.weather.highF}° L ${d.weather.lowF}°`

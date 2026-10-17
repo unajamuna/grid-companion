@@ -49,6 +49,8 @@ export default defineConfig(({ mode }) => {
   process.env.EIA_API_KEY ??= loadEnv(mode, process.cwd(), '').EIA_API_KEY
   return {
     plugins: [react(), tailwindcss(), eiaDev()],
+    // Lets the Übersicht widget preview (widgets/uebersicht/dev) import its 'uebersicht' module.
+    resolve: { alias: { uebersicht: '/widgets/uebersicht/dev/uebersicht-stub.js' } },
     server: {
       // CAISO's CSVs don't allow cross-origin browser requests, so we proxy them.
       // netlify.toml does the same in production.

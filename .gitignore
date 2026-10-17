@@ -26,3 +26,4 @@ dist-ssr
 # Local secrets (EIA_API_KEY)
 .env
 releases/
+widgets/scriptable/dev/preview*.html

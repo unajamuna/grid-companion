@@ -1,25 +1,13 @@
 import { useState } from 'react'
 import { fmtDayTime, fmtTime } from '../logic/phase'
+import { DEMAND_COLOR, demandLevel } from '../logic/demand'
 import { GROUP_ORDER, GROUPS, groupMix } from '../sources'
 import type { GridSnapshot, HourUsage, Phase } from '../types'
 import { PHASE_STYLE } from './PhaseIcon'
 
 const hourLabel = (h: number) => (h === 0 ? '12 AM' : h === 12 ? '12 PM' : h < 12 ? `${h} AM` : `${h - 12} PM`)
 
-// Where the reading sits in the day's range, in plain words, with a colour to match:
-// red near the day's peak, green near its low, the usual white in between.
-// (The record shows as the dashed line on the chart, so it isn't repeated here.)
-const LEVEL_COLOR = { peak: '#e5534b', low: '#44a861', moderate: undefined }
-
-function demandLevel(now: number, today: HourUsage[], delayed: boolean) {
-  const values = today.map((h) => h.demandMW)
-  const [min, max] = [Math.min(...values, now), Math.max(...values, now)]
-  const pos = max > min ? (now - min) / (max - min) : 0.5
-  const day = delayed ? 'that day' : 'today'
-  if (pos >= 0.85) return { tone: 'peak' as const, text: `Near ${day}’s peak` }
-  if (pos <= 0.25) return { tone: 'low' as const, text: `Low for ${day}` }
-  return { tone: 'moderate' as const, text: `Moderate for ${day}` }
-}
+// The record shows as the dashed line on the chart, so the level line doesn't repeat it.
 
 type Props = {
   today: HourUsage[]
@@ -64,7 +52,7 @@ export function UsageWidget({ today, snapshot, phase, isDemo, delayed = false, r
           const level = demandLevel(snapshot.demandMW, today, delayed)
           return (
             <p className={`mt-0.5 text-xs ${level.tone === 'moderate' ? 'text-white/85' : 'font-medium'}`}
-              style={{ color: LEVEL_COLOR[level.tone] }}>
+              style={{ color: DEMAND_COLOR[level.tone] }}>
               {level.text}
             </p>
           )
