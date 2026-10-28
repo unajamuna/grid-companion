@@ -13,6 +13,7 @@ process.env.TZ = 'America/Los_Angeles'
 
 import { CAISO_DIRECT, loadCaiso } from '../../src/data/caiso'
 import { loadEia } from '../../src/data/eia'
+import { typicalDay } from '../../src/data/typical'
 import { loadWeather } from '../../src/data/weather'
 import type { GridId } from '../../src/location'
 import { GRID_INFO, gridFor, lookupZip } from '../../src/location'
@@ -112,6 +113,11 @@ export default async function handler(req: Request): Promise<Response> {
         mix: h.mix ? Object.fromEntries(GROUP_ORDER.map((g) => [g, Math.round(groupMix(h.mix!)[g] * 100) / 100])) : null,
       })),
       recordGW: data.recordMW ? Math.round(data.recordMW / 1000) : null,
+      // Average demand for each hour of a day in this month (three years of EIA data), for the chart's line.
+      typical: (() => {
+        const t = typicalDay(grid, new Date(snapshot.observedAt))
+        return t && { label: t.label, gw: t.mw.map((v) => Math.round(v / 100) / 10) }
+      })(),
       busy,
       carbonIntensity: snapshot.carbonIntensity,
       mix: mix

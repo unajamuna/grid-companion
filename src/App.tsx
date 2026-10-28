@@ -11,6 +11,7 @@ import { loadEia } from './data/eia'
 import type { Weather } from './data/weather'
 import { loadWeather } from './data/weather'
 import { sampleGridData } from './data/sample'
+import { typicalDay } from './data/typical'
 import { classify, fmtDayTime, fmtTime } from './logic/phase'
 import type { Place } from './location'
 import { gridFor, loadPlace, savePlace } from './location'
@@ -148,7 +149,8 @@ export default function App() {
 
         <main className="mt-5 space-y-5">
           <UsageWidget today={data.today} snapshot={snapshot} phase={phase} isDemo={isDemo}
-            delayed={delayed} recordMW={data.recordMW} />
+            delayed={delayed} recordMW={data.recordMW}
+            typical={typicalDay(gridFor(place), new Date(snapshot.observedAt))} />
           <ActionsWidget context={{ phase, busy, now, weather }} />
           <WeatherWidget place={place} weather={weather} />
 

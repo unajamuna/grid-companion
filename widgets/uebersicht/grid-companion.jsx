@@ -55,8 +55,10 @@ const s = {
 }
 
 // Today's hourly demand, stacked by source like the website's chart. Grey = forecast.
-function Bars({ hours, recordGW }) {
-  const top = Math.max(recordGW ? recordGW * 1.15 : 0, ...hours.map((h) => h.gw * 1.1))
+// The white line is a typical day for this month.
+function Bars({ hours, recordGW, typical }) {
+  const top = Math.max(recordGW ? recordGW * 1.15 : 0, ...hours.map((h) => h.gw * 1.1), ...(typical?.gw ?? []).map((v) => v * 1.1))
+  const line = typical?.gw.map((v, h) => `${((h + 0.5) / 24) * 100},${100 - (v / top) * 100}`).join(' ')
   return (
     <div style={{ position: 'relative', height: 56, marginTop: 12 }}>
       {recordGW && (
@@ -73,6 +75,12 @@ function Bars({ hours, recordGW }) {
           </div>
         ))}
       </div>
+      {line && (
+        <svg viewBox="0 0 100 100" preserveAspectRatio="none" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible' }}>
+          <polyline points={line} fill="none" stroke="rgba(0,0,0,0.45)" strokeWidth="3" vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
+          <polyline points={line} fill="none" stroke="rgba(255,255,255,0.9)" strokeWidth="1.5" vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
+        </svg>
+      )}
     </div>
   )
 }
@@ -123,7 +131,13 @@ export const render = ({ output, error }) => {
           {d.demandLevel.text}
         </div>
       )}
-      {d.hours?.length > 1 && <Bars hours={d.hours} recordGW={d.recordGW} />}
+      {d.hours?.length > 1 && <Bars hours={d.hours} recordGW={d.recordGW} typical={d.typical} />}
+      {d.typical && d.hours?.length > 1 && (
+        <div style={{ ...s.small, marginTop: 4, display: 'flex', alignItems: 'center', gap: 5 }}>
+          <span style={{ width: 12, height: 2, borderRadius: 1, background: dim(0.9) }} />
+          {d.typical.label.replace('Typical', 'typical')}
+        </div>
+      )}
 
       {/* Mix right now */}
       {d.mix && (

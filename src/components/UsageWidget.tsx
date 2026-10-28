@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { fmtDayTime, fmtTime } from '../logic/phase'
 import { DEMAND_COLOR, demandLevel } from '../logic/demand'
 import { GROUP_ORDER, GROUPS, groupMix } from '../sources'
+import type { TypicalDay } from '../data/typical'
 import type { GridSnapshot, HourUsage, Phase } from '../types'
 import { PHASE_STYLE } from './PhaseIcon'
 
@@ -16,17 +17,20 @@ type Props = {
   isDemo: boolean
   delayed?: boolean
   recordMW?: number // drawn as a reference line so bars read against the grid's real high-water mark
+  typical?: TypicalDay | null // average demand by hour for this month, drawn as a line across the bars
 }
 
 // Screen Time–style widget: how much power the grid is using today, and what kind.
-export function UsageWidget({ today, snapshot, phase, isDemo, delayed = false, recordMW }: Props) {
+export function UsageWidget({ today, snapshot, phase, isDemo, delayed = false, recordMW, typical }: Props) {
   const gw = snapshot.demandMW == null ? '—' : (snapshot.demandMW / 1000).toFixed(1)
   const [showWhy, setShowWhy] = useState(false)
   const P = PHASE_STYLE[phase.id]
   const nowGroups = snapshot.mix ? groupMix(snapshot.mix) : null
   const ranked = nowGroups ? [...GROUP_ORDER].sort((a, b) => nowGroups[b] - nowGroups[a]) : []
   const peak = today.reduce((b, h) => (h.demandMW > b.demandMW ? h : b), today[0])
-  const scaleMW = Math.max((recordMW ?? 0) * 1.15, peak.demandMW * 1.1)
+  const scaleMW = Math.max((recordMW ?? 0) * 1.15, peak.demandMW * 1.1, ...(typical?.mw ?? []).map((v) => v * 1.1))
+  // The typical day as a line through the middle of each hour's bar
+  const typicalPts = typical?.mw.map((v, h) => `${((h + 0.5) / 24) * 100},${100 - (v / scaleMW) * 100}`).join(' ')
   const recordPct = recordMW ? (recordMW / scaleMW) * 100 : null
   const observedAt = new Date(snapshot.observedAt)
   const hasForecast = today.some((h) => h.isForecast)
@@ -72,7 +76,7 @@ export function UsageWidget({ today, snapshot, phase, isDemo, delayed = false, r
             </div>
           )}
           <div className="absolute inset-0 flex items-end gap-[2px] px-[1px]" role="img"
-            aria-label={`Hourly grid demand ${delayed ? `on ${observedAt.toLocaleDateString([], { weekday: 'long' })}` : 'today'}, peaking around ${hourLabel(new Date(peak.at).getHours())} at ${(peak.demandMW / 1000).toFixed(1)} gigawatts${recordMW ? `, against a record of ${Math.round(recordMW / 1000)} gigawatts` : ''}. Bars are split by energy source${hasForecast ? '; grey bars are forecast' : ''}.`}>
+            aria-label={`Hourly grid demand ${delayed ? `on ${observedAt.toLocaleDateString([], { weekday: 'long' })}` : 'today'}, peaking around ${hourLabel(new Date(peak.at).getHours())} at ${(peak.demandMW / 1000).toFixed(1)} gigawatts${recordMW ? `, against a record of ${Math.round(recordMW / 1000)} gigawatts` : ''}${typical ? `. A line shows a ${typical.label.replace("Typical", "typical")}, peaking at ${(Math.max(...typical.mw) / 1000).toFixed(1)} gigawatts` : ''}. Bars are split by energy source${hasForecast ? '; grey bars are forecast' : ''}.`}>
             {today.map((h) => {
               const g = h.mix ? groupMix(h.mix) : null
               return (
@@ -89,6 +93,15 @@ export function UsageWidget({ today, snapshot, phase, isDemo, delayed = false, r
               )
             })}
           </div>
+          {typicalPts && (
+            <svg className="pointer-events-none absolute inset-0 h-full w-full overflow-visible" viewBox="0 0 100 100"
+              preserveAspectRatio="none" aria-hidden>
+              <polyline points={typicalPts} fill="none" stroke="rgba(0,0,0,0.45)" strokeWidth={3.5}
+                strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+              <polyline points={typicalPts} fill="none" stroke="rgba(255,255,255,0.9)" strokeWidth={1.75}
+                strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+            </svg>
+          )}
         </div>
         <div className="mt-1.5 flex text-[10px] text-white/50 sm:text-xs">
           {[0, 6, 12, 18].map((h) => (
@@ -102,6 +115,14 @@ export function UsageWidget({ today, snapshot, phase, isDemo, delayed = false, r
               ? `Delayed · as of ${fmtDayTime(observedAt)}`
               : `${isDemo ? 'Sample data' : 'Live from CAISO'} · ${fmtTime(observedAt)}`}
           </span>
+          {typical && (
+            <>
+              <span aria-hidden>·</span>
+              <span className="inline-flex items-center gap-1" title={`Average demand for each hour, ${typical.source}`}>
+                <span className="inline-block h-[2px] w-3 rounded-full bg-white/90" /> {typical.label.replace("Typical", "typical")}
+              </span>
+            </>
+          )}
           {hasForecast && (
             <>
               <span aria-hidden>·</span>

@@ -16,6 +16,8 @@ const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
 
 class Color { constructor(hex, a = 1) { this.hex = hex; this.a = a } css() { const n = parseInt(this.hex.slice(1), 16); return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${this.a})` } }
 class Size { constructor(w, h) { this.width = w; this.height = h } }
+class Point { constructor(x, y) { this.x = x; this.y = y } }
+class Path { constructor() { this.pts = [] } addLines(pts) { this.pts.push(...pts) } }
 class Rect { constructor(x, y, w, h) { Object.assign(this, { x, y, w, h }) } }
 const Font = { systemFont: (s) => ({ s, w: 400 }), mediumSystemFont: (s) => ({ s, w: 500 }), semiboldSystemFont: (s) => ({ s, w: 600 }), boldSystemFont: (s) => ({ s, w: 700 }) }
 class DrawContext {
@@ -25,6 +27,10 @@ class DrawContext {
   setTextColor(c) { this.tc = c }
   setTextAlignedLeft() { this.align = 'start' }
   setTextAlignedRight() { this.align = 'end' }
+  addPath(p) { this.path = p }
+  setStrokeColor(c) { this.stroke = c }
+  setLineWidth(w) { this.lw = w }
+  strokePath() { this.ops.push(`<polyline points="${this.path.pts.map((p) => `${p.x},${p.y}`).join(' ')}" fill="none" stroke="${this.stroke.css()}" stroke-width="${this.lw}" stroke-linejoin="round"/>`) }
   fillRect(r) { this.ops.push(`<rect x="${r.x}" y="${r.y}" width="${Math.max(0, r.w)}" height="${Math.max(0, r.h)}" fill="${this.fill.css()}"/>`) }
   drawTextInRect(t, r) {
     const x = this.align === 'end' ? r.x + r.w : r.x
@@ -82,7 +88,7 @@ for (const view of ['usage', 'actions']) {
     if (view === 'actions' && family.startsWith('accessory')) continue
     const g = {
       args: { widgetParameter: `${zip} ${view}` }, config: { runsInWidget: true, widgetFamily: family },
-      Color, Size, Rect, Font, DrawContext, ListWidget, SFSymbol,
+      Color, Size, Rect, Point, Path, Font, DrawContext, ListWidget, SFSymbol,
       DateFormatter: class { string(d) { return d.toLocaleString('en-US', this.dateFormat.includes('MMM') ? { month: 'short', day: 'numeric', hour: 'numeric' } : { hour: 'numeric', minute: '2-digit' }) } },
       Request: class {
         constructor(u) { this.u = u.replace('https://grid-companion.vercel.app', site).replace('https://www.caiso.com/outlook/current', `${site}/caiso`) }

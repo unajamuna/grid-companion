@@ -223,14 +223,15 @@ function sourceTile(p, id, size) {
 }
 
 // ---- The chart: today's hourly demand stacked by source, like the website ----
-function chart(hours, recordGW, width, height, showLabels = true) {
+// `typical` (GW for each hour of a typical day this month) draws as a white line across the bars.
+function chart(hours, recordGW, width, height, showLabels = true, typical = null) {
   const dc = new DrawContext()
   dc.size = new Size(width, height)
   dc.opaque = false
   dc.respectScreenScale = true
   const labelH = showLabels ? 13 : 0
   const plotH = height - labelH
-  const top = Math.max(recordGW ? recordGW * 1.12 : 0, ...hours.map((h) => h.gw * 1.1))
+  const top = Math.max(recordGW ? recordGW * 1.12 : 0, ...hours.map((h) => h.gw * 1.1), ...(typical ?? []).map((v) => v * 1.1))
   const slot = width / 24
   const bw = Math.max(1, slot - 2)
   // Dotted guides at 12 AM, 6 AM, 12 PM, 6 PM
@@ -256,6 +257,16 @@ function chart(hours, recordGW, width, height, showLabels = true) {
   }
   dc.setFillColor(C.white(0.15))
   dc.fillRect(new Rect(0, plotH - 1, width, 1))
+  if (typical?.length === 24) {
+    const line = new Path()
+    line.addLines(typical.map((v, h) => new Point((h + 0.5) * slot, plotH - (v / top) * plotH)))
+    for (const [color, w] of [[hex('#000000', 0.45), 3], [C.white(0.9), 1.5]]) {
+      dc.addPath(line)
+      dc.setStrokeColor(color)
+      dc.setLineWidth(w)
+      dc.strokePath()
+    }
+  }
   if (recordGW) {
     const ry = plotH - (recordGW / top) * plotH
     dc.setFillColor(C.white(0.4))
@@ -274,9 +285,9 @@ function chart(hours, recordGW, width, height, showLabels = true) {
   return dc.getImage()
 }
 
-function addChart(p, hours, recordGW, width, height, labels = true) {
+function addChart(p, hours, recordGW, width, height, labels = true, typical = null) {
   if (!hours.length) return
-  const img = p.addImage(chart(hours, recordGW, width, height, labels))
+  const img = p.addImage(chart(hours, recordGW, width, height, labels, typical))
   img.imageSize = new Size(width, height)
 }
 
@@ -320,7 +331,7 @@ function usageMedium(w, d, stale, hours) {
   bigNumber(left, d, 24)
   levelLine(left, level)
   left.addSpacer()
-  addChart(left, hours, d.recordGW ?? 52, 190, 50)
+  addChart(left, hours, d.recordGW ?? 52, 190, 50, true, d.typical?.gw)
   const right = vstack(body, 6)
   right.backgroundColor = C.panel
   right.cornerRadius = 12
@@ -349,7 +360,15 @@ function usageLarge(w, d, stale, hours) {
   w.addSpacer(1)
   levelLine(w, level, 12)
   w.addSpacer()
-  addChart(w, hours, d.recordGW ?? 52, 310, 112)
+  addChart(w, hours, d.recordGW ?? 52, 310, 112, true, d.typical?.gw)
+  if (d.typical) {
+    const key = hstack(w, 4)
+    const sw = key.addStack()
+    sw.size = new Size(12, 2)
+    sw.cornerRadius = 1
+    sw.backgroundColor = C.white(0.9)
+    text(key, d.typical.label.replace('Typical', 'typical'), 9, C.white(0.5))
+  }
   w.addSpacer()
   const panel = hstack(w)
   panel.backgroundColor = C.panel
@@ -373,7 +392,7 @@ function usageSmall(w, d, stale, hours) {
   bigNumber(w, d, 26)
   levelLine(w, level)
   w.addSpacer()
-  addChart(w, hours, null, 128, 44, false)
+  addChart(w, hours, null, 128, 44, false, d.typical?.gw)
 }
 
 // ---- "What you can do" layouts ----
